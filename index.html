@@ -24,6 +24,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js" integrity="sha384-weMABwrltA6jWR8DDe9Jp5blk+tZQh7ugpCsF3JwSA53WZM9/14PjS5LAJNHNjAI" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js" integrity="sha384-2p6U+1mmqF10USehFeRiyG2ESG9FwIqN+jxULn5w9jjQIihSn9Pt13dVCn/Hawjn" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H" crossorigin="anonymous"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
@@ -247,6 +248,55 @@
                 </div>
                 <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-1" data-i18n="cardPageNums">Sayfa Numarası</h3>
                 <p class="text-xs text-gray-500 dark:text-gray-400" data-i18n="cardPageNumsDesc">PDF sayfalarına numara ekleyin</p>
+            </div>
+            <div class="tool-card cursor-pointer bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-navy-200 dark:hover:border-navy-400" onclick="openTool('removepages')">
+                <div class="w-11 h-11 rounded-xl bg-navy-50 flex items-center justify-center mb-3">
+                    <svg class="w-5.5 h-5.5 text-navy-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12H9.75m10.875-6.375a9 9 0 00-9-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25z"/></svg>
+                </div>
+                <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-1" data-i18n="cardRemovePages">Sayfa Sil</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400" data-i18n="cardRemovePagesDesc">PDF'den belirli sayfaları kaldırın</p>
+            </div>
+            <div class="tool-card cursor-pointer bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-navy-200 dark:hover:border-navy-400" onclick="openTool('extractpages')">
+                <div class="w-11 h-11 rounded-xl bg-navy-50 flex items-center justify-center mb-3">
+                    <svg class="w-5.5 h-5.5 text-navy-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+                </div>
+                <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-1" data-i18n="cardExtractPages">Sayfa Çıkar</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400" data-i18n="cardExtractPagesDesc">PDF'den belirli sayfaları çıkarın</p>
+            </div>
+            <div class="tool-card cursor-pointer bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-navy-200 dark:hover:border-navy-400" onclick="openTool('protectpdf')">
+                <div class="w-11 h-11 rounded-xl bg-navy-50 flex items-center justify-center mb-3">
+                    <svg class="w-5.5 h-5.5 text-navy-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
+                </div>
+                <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-1" data-i18n="cardProtectPdf">PDF Kilitle</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400" data-i18n="cardProtectPdfDesc">PDF'yi görsel olarak koruma altına alın</p>
+            </div>
+            <div class="tool-card cursor-pointer bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-navy-200 dark:hover:border-navy-400" onclick="openTool('unlockpdf')">
+                <div class="w-11 h-11 rounded-xl bg-navy-50 flex items-center justify-center mb-3">
+                    <svg class="w-5.5 h-5.5 text-navy-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13.5 10.5V6.75a4.5 4.5 0 119 0v3.75M3.75 21.75h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H3.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
+                </div>
+                <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-1" data-i18n="cardUnlockPdf">PDF Kilit Aç</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400" data-i18n="cardUnlockPdfDesc">Şifreli PDF dosyasının kilidini açın</p>
+            </div>
+            <div class="tool-card cursor-pointer bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-navy-200 dark:hover:border-navy-400" onclick="openTool('redactpdf')">
+                <div class="w-11 h-11 rounded-xl bg-navy-50 flex items-center justify-center mb-3">
+                    <svg class="w-5.5 h-5.5 text-navy-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"/></svg>
+                </div>
+                <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-1" data-i18n="cardRedactPdf">PDF Karartma</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400" data-i18n="cardRedactPdfDesc">Hassas bilgileri kalıcı olarak karartın</p>
+            </div>
+            <div class="tool-card cursor-pointer bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-navy-200 dark:hover:border-navy-400" onclick="openTool('repairpdf')">
+                <div class="w-11 h-11 rounded-xl bg-navy-50 flex items-center justify-center mb-3">
+                    <svg class="w-5.5 h-5.5 text-navy-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11.42 15.17l-5.645-5.645a3.563 3.563 0 114.95-4.95l.355.355.354-.354a3.565 3.565 0 014.95 4.95l-5.645 5.644a.75.75 0 01-1.06 0zM21.75 12a9.75 9.75 0 11-19.5 0 9.75 9.75 0 0119.5 0z"/></svg>
+                </div>
+                <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-1" data-i18n="cardRepairPdf">PDF Onar</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400" data-i18n="cardRepairPdfDesc">Bozuk PDF dosyalarını onarmayı deneyin</p>
+            </div>
+            <div class="tool-card cursor-pointer bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-navy-200 dark:hover:border-navy-400" onclick="openTool('html2pdf')">
+                <div class="w-11 h-11 rounded-xl bg-navy-50 flex items-center justify-center mb-3">
+                    <svg class="w-5.5 h-5.5 text-navy-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5"/></svg>
+                </div>
+                <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-1" data-i18n="cardHtml2pdf">HTML &rarr; PDF</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400" data-i18n="cardHtml2pdfDesc">HTML kodunu PDF dosyasına dönüştürün</p>
             </div>
         </div>
     </div>
@@ -526,6 +576,78 @@ var i18n = {
         // Multi file info
         filesLabel: ' dosya: ',
         pageLabel: 'Sayfa ',
+        // Remove Pages
+        cardRemovePages: 'Sayfa Sil',
+        cardRemovePagesDesc: 'PDF\'den belirli sayfaları kaldırın',
+        toolRemovePagesTitle: 'Sayfa Sil',
+        toolRemovePagesDesc: 'PDF dosyasından belirli sayfaları kaldırın.',
+        labelPageNumbers: 'Silinecek sayfalar (ör: 1,3,5 veya 2-4)',
+        btnRemovePages: 'Sayfaları Sil',
+        removingPages: 'Sayfalar siliniyor...',
+        resultPagesRemoved: ' sayfa silindi',
+        toastInvalidPageRange: 'Geçersiz sayfa aralığı',
+        toastNoPages: 'Lütfen sayfa numaralarını girin',
+        toastAllPagesRemoved: 'Tüm sayfalar silinemez',
+        // Extract Pages
+        cardExtractPages: 'Sayfa Çıkar',
+        cardExtractPagesDesc: 'PDF\'den belirli sayfaları çıkarın',
+        toolExtractPagesTitle: 'Sayfa Çıkar',
+        toolExtractPagesDesc: 'PDF dosyasından belirli sayfaları çıkarın.',
+        labelExtractPages: 'Çıkarılacak sayfalar (ör: 1,3,5 veya 2-4)',
+        btnExtractPages: 'Sayfaları Çıkar',
+        extractingPages: 'Sayfalar çıkarılıyor...',
+        resultPagesExtracted: ' sayfa çıkarıldı',
+        // Protect PDF
+        cardProtectPdf: 'PDF Kilitle',
+        cardProtectPdfDesc: 'PDF\'yi görsel olarak koruma altına alın',
+        toolProtectPdfTitle: 'PDF Kilitle',
+        toolProtectPdfDesc: 'PDF sayfalarını görsel olarak koruma altına alın. Metin seçimi devre dışı kalır.',
+        labelProtectNote: 'Not: Bu araç PDF sayfalarını görsel olarak yeniden oluşturarak metin seçimini devre dışı bırakır. Tam şifre koruması için sunucu taraflı bir araç gereklidir.',
+        btnProtectPdf: 'PDF\'yi Kilitle',
+        protectingPdf: 'Korumalı PDF oluşturuluyor...',
+        resultProtected: 'PDF koruma altına alındı',
+        // Unlock PDF
+        cardUnlockPdf: 'PDF Kilit Aç',
+        cardUnlockPdfDesc: 'Şifreli PDF dosyasının kilidini açın',
+        toolUnlockPdfTitle: 'PDF Kilit Aç',
+        toolUnlockPdfDesc: 'Şifreli bir PDF dosyasının kilidini açın.',
+        labelPassword: 'PDF Şifresi',
+        btnUnlockPdf: 'Kilidi Aç',
+        unlockingPdf: 'Kilit açılıyor...',
+        resultUnlocked: 'PDF kilidi açıldı',
+        toastWrongPassword: 'Şifre yanlış veya dosya şifreli değil',
+        // Redact PDF
+        cardRedactPdf: 'PDF Karartma',
+        cardRedactPdfDesc: 'Hassas bilgileri kalıcı olarak karartın',
+        toolRedactPdfTitle: 'PDF Karartma',
+        toolRedactPdfDesc: 'Hassas bilgilerin üzerine siyah dikdörtgenler çizerek kalıcı olarak karartın.',
+        btnSaveRedacted: 'Karartılmış PDF\'yi İndir',
+        redactingPdf: 'Karartma uygulanıyor...',
+        resultRedacted: 'Karartma uygulandı',
+        redactInstructions: 'Karartmak istediğiniz alanların üzerine siyah dikdörtgenler çizin.',
+        // Repair PDF
+        cardRepairPdf: 'PDF Onar',
+        cardRepairPdfDesc: 'Bozuk PDF dosyalarını onarmayı deneyin',
+        toolRepairPdfTitle: 'PDF Onar',
+        toolRepairPdfDesc: 'Bozuk veya hasarlı PDF dosyalarını onarmayı deneyin.',
+        labelSelectBrokenPdf: 'Onarmak istediğiniz PDF dosyasını seçin',
+        btnRepairPdf: 'PDF\'yi Onar',
+        repairingPdf: 'Onarılıyor...',
+        resultRepaired: 'PDF başarıyla onarıldı',
+        resultRepairedFallback: 'PDF yeniden oluşturularak onarıldı',
+        toastRepairFailed: 'PDF onarılamadı. Dosya çok hasarlı olabilir.',
+        // HTML to PDF
+        cardHtml2pdf: 'HTML \u2192 PDF',
+        cardHtml2pdfDesc: 'HTML kodunu PDF dosyasına dönüştürün',
+        toolHtml2pdfTitle: 'HTML \u2192 PDF',
+        toolHtml2pdfDesc: 'HTML kodunu PDF dosyasına dönüştürün.',
+        labelHtmlCode: 'HTML Kodu',
+        htmlPlaceholder: '<h1>Merhaba Dünya</h1>\n<p>HTML kodunuzu buraya yazın...</p>',
+        btnPreviewHtml: 'Önizle',
+        btnConvertHtml: 'PDF\'ye Dönüştür',
+        convertingHtml: 'HTML dönüştürülüyor...',
+        resultHtml2pdf: 'HTML \u2192 PDF dönüştürüldü',
+        toastEmptyHtml: 'Lütfen HTML kodu girin',
     },
     en: {
         // Page title
@@ -712,6 +834,78 @@ var i18n = {
         // Multi file info
         filesLabel: ' files: ',
         pageLabel: 'Page ',
+        // Remove Pages
+        cardRemovePages: 'Remove Pages',
+        cardRemovePagesDesc: 'Remove specific pages from a PDF',
+        toolRemovePagesTitle: 'Remove Pages',
+        toolRemovePagesDesc: 'Remove specific pages from a PDF file.',
+        labelPageNumbers: 'Pages to remove (e.g., 1,3,5 or 2-4)',
+        btnRemovePages: 'Remove Pages',
+        removingPages: 'Removing pages...',
+        resultPagesRemoved: ' pages removed',
+        toastInvalidPageRange: 'Invalid page range',
+        toastNoPages: 'Please enter page numbers',
+        toastAllPagesRemoved: 'Cannot remove all pages',
+        // Extract Pages
+        cardExtractPages: 'Extract Pages',
+        cardExtractPagesDesc: 'Extract specific pages from a PDF',
+        toolExtractPagesTitle: 'Extract Pages',
+        toolExtractPagesDesc: 'Extract specific pages from a PDF file.',
+        labelExtractPages: 'Pages to extract (e.g., 1,3,5 or 2-4)',
+        btnExtractPages: 'Extract Pages',
+        extractingPages: 'Extracting pages...',
+        resultPagesExtracted: ' pages extracted',
+        // Protect PDF
+        cardProtectPdf: 'Protect PDF',
+        cardProtectPdfDesc: 'Visually protect your PDF',
+        toolProtectPdfTitle: 'Protect PDF',
+        toolProtectPdfDesc: 'Visually protect PDF pages by disabling text selection.',
+        labelProtectNote: 'Note: This tool re-renders PDF pages as images to disable text selection. For full password protection, a server-side tool is recommended.',
+        btnProtectPdf: 'Protect PDF',
+        protectingPdf: 'Creating protected PDF...',
+        resultProtected: 'PDF protected',
+        // Unlock PDF
+        cardUnlockPdf: 'Unlock PDF',
+        cardUnlockPdfDesc: 'Unlock a password-protected PDF',
+        toolUnlockPdfTitle: 'Unlock PDF',
+        toolUnlockPdfDesc: 'Unlock a password-protected PDF file.',
+        labelPassword: 'PDF Password',
+        btnUnlockPdf: 'Unlock',
+        unlockingPdf: 'Unlocking...',
+        resultUnlocked: 'PDF unlocked',
+        toastWrongPassword: 'Wrong password or file is not encrypted',
+        // Redact PDF
+        cardRedactPdf: 'Redact PDF',
+        cardRedactPdfDesc: 'Permanently redact sensitive information',
+        toolRedactPdfTitle: 'Redact PDF',
+        toolRedactPdfDesc: 'Draw black rectangles over sensitive areas to permanently redact them.',
+        btnSaveRedacted: 'Download Redacted PDF',
+        redactingPdf: 'Applying redactions...',
+        resultRedacted: 'Redactions applied',
+        redactInstructions: 'Draw black rectangles over the areas you want to redact.',
+        // Repair PDF
+        cardRepairPdf: 'Repair PDF',
+        cardRepairPdfDesc: 'Try to repair corrupted PDF files',
+        toolRepairPdfTitle: 'Repair PDF',
+        toolRepairPdfDesc: 'Try to repair corrupted or damaged PDF files.',
+        labelSelectBrokenPdf: 'Select the PDF file you want to repair',
+        btnRepairPdf: 'Repair PDF',
+        repairingPdf: 'Repairing...',
+        resultRepaired: 'PDF repaired successfully',
+        resultRepairedFallback: 'PDF repaired by re-rendering',
+        toastRepairFailed: 'Could not repair PDF. The file may be too damaged.',
+        // HTML to PDF
+        cardHtml2pdf: 'HTML \u2192 PDF',
+        cardHtml2pdfDesc: 'Convert HTML code to a PDF file',
+        toolHtml2pdfTitle: 'HTML \u2192 PDF',
+        toolHtml2pdfDesc: 'Convert HTML code to a PDF file.',
+        labelHtmlCode: 'HTML Code',
+        htmlPlaceholder: '<h1>Hello World</h1>\n<p>Enter your HTML code here...</p>',
+        btnPreviewHtml: 'Preview',
+        btnConvertHtml: 'Convert to PDF',
+        convertingHtml: 'Converting HTML...',
+        resultHtml2pdf: 'HTML \u2192 PDF converted',
+        toastEmptyHtml: 'Please enter HTML code',
     }
 };
 
@@ -891,6 +1085,13 @@ function openTool(id) {
         pdf2img: { titleKey: 'toolPdf2imgTitle', descKey: 'toolPdf2imgDesc', build: buildPdf2Img },
         watermark: { titleKey: 'toolWatermarkTitle', descKey: 'toolWatermarkDesc', build: buildWatermark },
         pagenums: { titleKey: 'toolPageNumsTitle', descKey: 'toolPageNumsDesc', build: buildPageNums },
+        removepages: { titleKey: 'toolRemovePagesTitle', descKey: 'toolRemovePagesDesc', build: buildRemovePages },
+        extractpages: { titleKey: 'toolExtractPagesTitle', descKey: 'toolExtractPagesDesc', build: buildExtractPages },
+        protectpdf: { titleKey: 'toolProtectPdfTitle', descKey: 'toolProtectPdfDesc', build: buildProtectPdf },
+        unlockpdf: { titleKey: 'toolUnlockPdfTitle', descKey: 'toolUnlockPdfDesc', build: buildUnlockPdf },
+        redactpdf: { titleKey: 'toolRedactPdfTitle', descKey: 'toolRedactPdfDesc', build: buildRedactPdf },
+        repairpdf: { titleKey: 'toolRepairPdfTitle', descKey: 'toolRepairPdfDesc', build: buildRepairPdf },
+        html2pdf: { titleKey: 'toolHtml2pdfTitle', descKey: 'toolHtml2pdfDesc', build: buildHtml2Pdf },
     };
 
     var tl = tools[id];
@@ -1704,6 +1905,568 @@ function buildPageNums(container) {
         btn.disabled = false; btn.innerHTML = t('btnAddNumbers');
     };
 }
+
+// =============================================
+// Parse page range string like "1,3,5" or "2-4" into array of 0-based indices
+// =============================================
+function parsePageRange(str, totalPages) {
+    var pages = [];
+    var parts = str.split(',');
+    for (var i = 0; i < parts.length; i++) {
+        var part = parts[i].trim();
+        if (!part) continue;
+        if (part.indexOf('-') !== -1) {
+            var range = part.split('-');
+            var start = parseInt(range[0]);
+            var end = parseInt(range[1]);
+            if (isNaN(start) || isNaN(end) || start < 1 || end < 1 || start > totalPages || end > totalPages) return null;
+            if (start > end) { var tmp = start; start = end; end = tmp; }
+            for (var j = start; j <= end; j++) {
+                if (pages.indexOf(j - 1) === -1) pages.push(j - 1);
+            }
+        } else {
+            var p = parseInt(part);
+            if (isNaN(p) || p < 1 || p > totalPages) return null;
+            if (pages.indexOf(p - 1) === -1) pages.push(p - 1);
+        }
+    }
+    pages.sort(function(a, b) { return a - b; });
+    return pages;
+}
+
+// --- Sayfa Sil ---
+function buildRemovePages(container) {
+    container.innerHTML = uploadZoneHTML('f_rmpg', '.pdf', t('labelSelectPdf')) +
+        '<div class="mt-4"><label class="text-sm font-medium text-gray-700 dark:text-gray-300">' + t('labelPageNumbers') + '</label><input type="text" id="rmpgInput" placeholder="1,3,5 / 2-4" class="mt-1 w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-xl focus:border-navy-400 outline-none text-sm"><p id="rmpgPageCount" class="text-xs text-gray-500 dark:text-gray-400 mt-1"></p></div>' +
+        actionBtnHTML('btn_rmpg', t('btnRemovePages'));
+    document.getElementById('f_rmpg').onchange = function() {
+        var file = document.getElementById('f_rmpg').files[0];
+        if (!file) return;
+        if (!checkFileSize(file)) { clearInput('f_rmpg'); return; }
+        showFileInfo('f_rmpg'); document.getElementById('btn_rmpg').disabled = false;
+        // Show page count
+        file.arrayBuffer().then(function(buf) {
+            if (!validatePdfMagic(buf)) { toast(t('toastInvalidPdf')); clearInput('f_rmpg'); document.getElementById('btn_rmpg').disabled = true; return; }
+            PDFLib.PDFDocument.load(buf).then(function(doc) {
+                document.getElementById('rmpgPageCount').textContent = t('pageLabel') + ': ' + doc.getPageCount();
+            }).catch(function() {});
+        });
+    };
+    document.getElementById('btn_rmpg').onclick = async function() {
+        var file = document.getElementById('f_rmpg').files[0]; if (!file) return;
+        var input = document.getElementById('rmpgInput').value.trim();
+        if (!input) { toast(t('toastNoPages')); return; }
+        var btn = document.getElementById('btn_rmpg');
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> ' + t('removingPages');
+        try {
+            var buf = await file.arrayBuffer();
+            if (!validatePdfMagic(buf)) { toast(t('toastInvalidPdf')); btn.disabled = false; btn.innerHTML = t('btnRemovePages'); return; }
+            var doc = await PDFLib.PDFDocument.load(buf);
+            var totalPages = doc.getPageCount();
+            var pagesToRemove = parsePageRange(input, totalPages);
+            if (!pagesToRemove || pagesToRemove.length === 0) { toast(t('toastInvalidPageRange')); btn.disabled = false; btn.innerHTML = t('btnRemovePages'); return; }
+            if (pagesToRemove.length >= totalPages) { toast(t('toastAllPagesRemoved')); btn.disabled = false; btn.innerHTML = t('btnRemovePages'); return; }
+            setProgress('f_rmpg', 50, t('removingPages'));
+            // Remove pages in reverse order to preserve indices
+            for (var i = pagesToRemove.length - 1; i >= 0; i--) {
+                doc.removePage(pagesToRemove[i]);
+            }
+            setProgress('f_rmpg', 100, t('completed'));
+            var bytes = await doc.save();
+            var blob = new Blob([bytes], { type: 'application/pdf' });
+            var rmSuffix = _currentLang === 'en' ? '_pages_removed.pdf' : '_sayfalar_silindi.pdf';
+            showResult(pagesToRemove.length + t('resultPagesRemoved') + ' (' + fmtSize(blob.size) + ')', blob, file.name.replace(/\.pdf$/i, '') + rmSuffix);
+        } catch (e) {
+            console.error('Remove pages error:', e);
+            toast(t('toastError'));
+        }
+        btn.disabled = false; btn.innerHTML = t('btnRemovePages');
+    };
+}
+
+// --- Sayfa Cikar ---
+function buildExtractPages(container) {
+    container.innerHTML = uploadZoneHTML('f_expg', '.pdf', t('labelSelectPdf')) +
+        '<div class="mt-4"><label class="text-sm font-medium text-gray-700 dark:text-gray-300">' + t('labelExtractPages') + '</label><input type="text" id="expgInput" placeholder="1,3,5 / 2-4" class="mt-1 w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-xl focus:border-navy-400 outline-none text-sm"><p id="expgPageCount" class="text-xs text-gray-500 dark:text-gray-400 mt-1"></p></div>' +
+        actionBtnHTML('btn_expg', t('btnExtractPages'));
+    document.getElementById('f_expg').onchange = function() {
+        var file = document.getElementById('f_expg').files[0];
+        if (!file) return;
+        if (!checkFileSize(file)) { clearInput('f_expg'); return; }
+        showFileInfo('f_expg'); document.getElementById('btn_expg').disabled = false;
+        file.arrayBuffer().then(function(buf) {
+            if (!validatePdfMagic(buf)) { toast(t('toastInvalidPdf')); clearInput('f_expg'); document.getElementById('btn_expg').disabled = true; return; }
+            PDFLib.PDFDocument.load(buf).then(function(doc) {
+                document.getElementById('expgPageCount').textContent = t('pageLabel') + ': ' + doc.getPageCount();
+            }).catch(function() {});
+        });
+    };
+    document.getElementById('btn_expg').onclick = async function() {
+        var file = document.getElementById('f_expg').files[0]; if (!file) return;
+        var input = document.getElementById('expgInput').value.trim();
+        if (!input) { toast(t('toastNoPages')); return; }
+        var btn = document.getElementById('btn_expg');
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> ' + t('extractingPages');
+        try {
+            var buf = await file.arrayBuffer();
+            if (!validatePdfMagic(buf)) { toast(t('toastInvalidPdf')); btn.disabled = false; btn.innerHTML = t('btnExtractPages'); return; }
+            var srcDoc = await PDFLib.PDFDocument.load(buf);
+            var totalPages = srcDoc.getPageCount();
+            var pagesToExtract = parsePageRange(input, totalPages);
+            if (!pagesToExtract || pagesToExtract.length === 0) { toast(t('toastInvalidPageRange')); btn.disabled = false; btn.innerHTML = t('btnExtractPages'); return; }
+            setProgress('f_expg', 50, t('extractingPages'));
+            var newDoc = await PDFLib.PDFDocument.create();
+            var copiedPages = await newDoc.copyPages(srcDoc, pagesToExtract);
+            copiedPages.forEach(function(p) { newDoc.addPage(p); });
+            setProgress('f_expg', 100, t('completed'));
+            var bytes = await newDoc.save();
+            var blob = new Blob([bytes], { type: 'application/pdf' });
+            var exSuffix = _currentLang === 'en' ? '_extracted.pdf' : '_çıkarılan.pdf';
+            showResult(pagesToExtract.length + t('resultPagesExtracted') + ' (' + fmtSize(blob.size) + ')', blob, file.name.replace(/\.pdf$/i, '') + exSuffix);
+        } catch (e) {
+            console.error('Extract pages error:', e);
+            toast(t('toastError'));
+        }
+        btn.disabled = false; btn.innerHTML = t('btnExtractPages');
+    };
+}
+
+// --- PDF Kilitle ---
+function buildProtectPdf(container) {
+    container.innerHTML = uploadZoneHTML('f_prot', '.pdf', t('labelSelectPdf')) +
+        '<div class="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl"><p class="text-sm text-amber-700 dark:text-amber-300">' + t('labelProtectNote') + '</p></div>' +
+        actionBtnHTML('btn_prot', t('btnProtectPdf'));
+    document.getElementById('f_prot').onchange = function() {
+        var file = document.getElementById('f_prot').files[0];
+        if (!file) return;
+        if (!checkFileSize(file)) { clearInput('f_prot'); return; }
+        showFileInfo('f_prot'); document.getElementById('btn_prot').disabled = false;
+    };
+    document.getElementById('btn_prot').onclick = async function() {
+        var file = document.getElementById('f_prot').files[0]; if (!file) return;
+        var btn = document.getElementById('btn_prot');
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> ' + t('protectingPdf');
+        try {
+            var buf = await file.arrayBuffer();
+            if (!validatePdfMagic(buf)) { toast(t('toastInvalidPdf')); btn.disabled = false; btn.innerHTML = t('btnProtectPdf'); return; }
+            var pdf = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
+            var jsPDFLib = window.jspdf;
+            var out = new jsPDFLib.jsPDF({ unit: 'pt', format: 'a4' });
+            for (var i = 1; i <= pdf.numPages; i++) {
+                if (i > 1) out.addPage();
+                setProgress('f_prot', Math.round((i / pdf.numPages) * 90), t('pageLabel') + i + '/' + pdf.numPages);
+                var page = await pdf.getPage(i);
+                var vp = page.getViewport({ scale: 2.0 });
+                var c = document.createElement('canvas');
+                c.width = vp.width; c.height = vp.height;
+                await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+                var imgData = c.toDataURL('image/png');
+                c.width = 0; c.height = 0;
+                var cpw = out.internal.pageSize.getWidth(), cph = out.internal.pageSize.getHeight();
+                out.addImage(imgData, 'PNG', 0, 0, cpw, cph);
+            }
+            setProgress('f_prot', 100, t('completed'));
+            var blob = out.output('blob');
+            var protSuffix = _currentLang === 'en' ? '_protected.pdf' : '_korumalı.pdf';
+            showResult(t('resultProtected') + ' (' + fmtSize(blob.size) + ')', blob, file.name.replace(/\.pdf$/i, '') + protSuffix);
+        } catch (e) {
+            console.error('Protect PDF error:', e);
+            toast(t('toastError'));
+        }
+        btn.disabled = false; btn.innerHTML = t('btnProtectPdf');
+    };
+}
+
+// --- PDF Kilit Ac ---
+function buildUnlockPdf(container) {
+    container.innerHTML = uploadZoneHTML('f_unlock', '.pdf', t('labelSelectPdf')) +
+        '<div class="mt-4"><label class="text-sm font-medium text-gray-700 dark:text-gray-300">' + t('labelPassword') + '</label><input type="password" id="unlockPw" class="mt-1 w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-xl focus:border-navy-400 outline-none text-sm"></div>' +
+        actionBtnHTML('btn_unlock', t('btnUnlockPdf'));
+    document.getElementById('f_unlock').onchange = function() {
+        var file = document.getElementById('f_unlock').files[0];
+        if (!file) return;
+        if (!checkFileSize(file)) { clearInput('f_unlock'); return; }
+        showFileInfo('f_unlock'); document.getElementById('btn_unlock').disabled = false;
+    };
+    document.getElementById('btn_unlock').onclick = async function() {
+        var file = document.getElementById('f_unlock').files[0]; if (!file) return;
+        var pw = document.getElementById('unlockPw').value;
+        var btn = document.getElementById('btn_unlock');
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> ' + t('unlockingPdf');
+        try {
+            var buf = await file.arrayBuffer();
+            if (!validatePdfMagic(buf)) { toast(t('toastInvalidPdf')); btn.disabled = false; btn.innerHTML = t('btnUnlockPdf'); return; }
+            setProgress('f_unlock', 50, t('unlockingPdf'));
+            var doc = await PDFLib.PDFDocument.load(buf, { password: pw, ignoreEncryption: true });
+            var bytes = await doc.save();
+            setProgress('f_unlock', 100, t('completed'));
+            var blob = new Blob([bytes], { type: 'application/pdf' });
+            var unlSuffix = _currentLang === 'en' ? '_unlocked.pdf' : '_kilitsiz.pdf';
+            showResult(t('resultUnlocked') + ' (' + fmtSize(blob.size) + ')', blob, file.name.replace(/\.pdf$/i, '') + unlSuffix);
+        } catch (e) {
+            console.error('Unlock PDF error:', e);
+            toast(t('toastWrongPassword'));
+        }
+        btn.disabled = false; btn.innerHTML = t('btnUnlockPdf');
+    };
+}
+
+// --- PDF Karartma / Redact ---
+function buildRedactPdf(container) {
+    container.innerHTML =
+        '<div id="redactUpload">' +
+            uploadZoneHTML('f_redact', '.pdf', t('labelSelectPdf')) +
+        '</div>' +
+        '<div id="redactUI" class="hidden fade-in">' +
+            '<p class="text-sm text-gray-600 dark:text-gray-300 mb-4">' + t('redactInstructions') + '</p>' +
+            '<div class="overflow-auto bg-gray-100 dark:bg-gray-900 rounded-xl p-4 flex justify-center" style="max-height:75vh" id="redactCanvasContainer">' +
+                '<div class="pdf-editor-canvas-wrap" id="redactWrap">' +
+                    '<canvas id="redactPdfCanvas"></canvas>' +
+                    '<canvas id="redactDrawCanvas" style="position:absolute;top:0;left:0;cursor:crosshair;"></canvas>' +
+                '</div>' +
+            '</div>' +
+            '<div class="editor-page-nav" id="redactPageNav">' +
+                '<button onclick="redactPrevPage()">' + t('edPrev') + '</button>' +
+                '<span id="redactPageInfo" class="text-sm font-medium text-gray-600 dark:text-gray-300"></span>' +
+                '<button onclick="redactNextPage()">' + t('edNext') + '</button>' +
+            '</div>' +
+            '<div class="flex gap-3 mt-4">' +
+                '<button onclick="redactUndo()" class="flex-1 py-2.5 rounded-xl border-2 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 font-semibold text-sm hover:border-gray-300">' + t('edUndo') + '</button>' +
+                '<button onclick="redactClearPage()" class="flex-1 py-2.5 rounded-xl border-2 border-gray-200 dark:border-gray-600 text-red-500 font-semibold text-sm hover:border-red-300">' + t('edClear') + '</button>' +
+            '</div>' +
+            '<button id="redactSaveBtn" class="w-full mt-4 py-3.5 rounded-xl font-semibold text-white bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 transition shadow-sm flex items-center justify-center gap-2" onclick="redactSave()">' +
+                '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12M12 16.5V3"/></svg>' +
+                ' ' + t('btnSaveRedacted') +
+            '</button>' +
+        '</div>';
+
+    // Redact state
+    DF.redactPdfBuf = null;
+    DF.redactPdf = null;
+    DF.redactPageNum = 1;
+    DF.redactScale = 1;
+    DF.redactRects = {};
+    DF.redactIsDrawing = false;
+    DF.redactPdfName = '';
+
+    document.getElementById('f_redact').onchange = async function() {
+        var file = document.getElementById('f_redact').files[0];
+        if (!file) return;
+        if (!checkFileSize(file)) { clearInput('f_redact'); return; }
+        try {
+            var buf = await file.arrayBuffer();
+            if (!validatePdfMagic(buf)) { toast(t('toastInvalidPdf')); return; }
+            DF.redactPdfBuf = buf;
+            DF.redactPdfName = file.name;
+            DF.redactPdf = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
+            DF.redactPageNum = 1;
+            DF.redactRects = {};
+
+            document.getElementById('redactUpload').classList.add('hidden');
+            document.getElementById('redactUI').classList.remove('hidden');
+            await redactRenderPage(1);
+            redactSetupCanvas();
+        } catch (e) {
+            console.error('Redact PDF load error:', e);
+            toast(t('toastPdfLoadFail'));
+        }
+    };
+}
+
+async function redactRenderPage(num) {
+    var page = await DF.redactPdf.getPage(num);
+    var scale = Math.min(800 / page.getViewport({ scale: 1 }).width, 2.0);
+    var vp = page.getViewport({ scale: scale });
+    var pc = document.getElementById('redactPdfCanvas');
+    var dc = document.getElementById('redactDrawCanvas');
+    pc.width = dc.width = vp.width;
+    pc.height = dc.height = vp.height;
+    await page.render({ canvasContext: pc.getContext('2d'), viewport: vp }).promise;
+    DF.redactScale = scale;
+    DF.redactPageNum = num;
+    document.getElementById('redactPageInfo').textContent = t('edPage') + ' ' + num + ' / ' + DF.redactPdf.numPages;
+    redactRedrawRects();
+}
+
+function redactGetRects(page) {
+    if (!DF.redactRects[page]) DF.redactRects[page] = [];
+    return DF.redactRects[page];
+}
+
+function redactRedrawRects() {
+    var dc = document.getElementById('redactDrawCanvas');
+    var ctx = dc.getContext('2d');
+    ctx.clearRect(0, 0, dc.width, dc.height);
+    var rects = redactGetRects(DF.redactPageNum);
+    ctx.fillStyle = '#000000';
+    for (var i = 0; i < rects.length; i++) {
+        var r = rects[i];
+        ctx.fillRect(r.x, r.y, r.w, r.h);
+    }
+}
+
+function redactSetupCanvas() {
+    var dc = document.getElementById('redactDrawCanvas');
+    var startX, startY;
+    dc.onmousedown = dc.ontouchstart = function(e) {
+        e.preventDefault();
+        var rect = dc.getBoundingClientRect();
+        var touch = e.touches ? e.touches[0] : e;
+        startX = (touch.clientX - rect.left) * (dc.width / rect.width);
+        startY = (touch.clientY - rect.top) * (dc.height / rect.height);
+        DF.redactIsDrawing = true;
+        DF.redactCurrentShape = { x: startX, y: startY, w: 0, h: 0 };
+    };
+    dc.onmousemove = dc.ontouchmove = function(e) {
+        if (!DF.redactIsDrawing) return;
+        e.preventDefault();
+        var rect = dc.getBoundingClientRect();
+        var touch = e.touches ? e.touches[0] : e;
+        var x = (touch.clientX - rect.left) * (dc.width / rect.width);
+        var y = (touch.clientY - rect.top) * (dc.height / rect.height);
+        DF.redactCurrentShape.w = x - startX;
+        DF.redactCurrentShape.h = y - startY;
+        redactRedrawRects();
+        var ctx = dc.getContext('2d');
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(startX, startY, x - startX, y - startY);
+    };
+    dc.onmouseup = dc.ontouchend = function(e) {
+        if (!DF.redactIsDrawing) return;
+        DF.redactIsDrawing = false;
+        var s = DF.redactCurrentShape;
+        if (s && (Math.abs(s.w) > 3 || Math.abs(s.h) > 3)) {
+            if (s.w < 0) { s.x += s.w; s.w *= -1; }
+            if (s.h < 0) { s.y += s.h; s.h *= -1; }
+            redactGetRects(DF.redactPageNum).push(s);
+        }
+        DF.redactCurrentShape = null;
+        redactRedrawRects();
+    };
+}
+
+function redactUndo() {
+    var rects = redactGetRects(DF.redactPageNum);
+    if (rects.length > 0) { rects.pop(); redactRedrawRects(); }
+}
+
+function redactClearPage() {
+    DF.redactRects[DF.redactPageNum] = [];
+    redactRedrawRects();
+}
+
+async function redactPrevPage() {
+    if (DF.redactPageNum > 1) await redactRenderPage(DF.redactPageNum - 1);
+}
+
+async function redactNextPage() {
+    if (DF.redactPageNum < DF.redactPdf.numPages) await redactRenderPage(DF.redactPageNum + 1);
+}
+
+async function redactSave() {
+    var btn = document.getElementById('redactSaveBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> ' + t('redactingPdf');
+    try {
+        var doc = await PDFLib.PDFDocument.load(DF.redactPdfBuf.slice(0));
+        var pages = doc.getPages();
+        for (var pNum = 1; pNum <= pages.length; pNum++) {
+            var rects = DF.redactRects[pNum];
+            if (!rects || rects.length === 0) continue;
+            var page = pages[pNum - 1];
+            var pageDims = page.getSize();
+            var pw = pageDims.width, ph = pageDims.height;
+            var pdfPage = await DF.redactPdf.getPage(pNum);
+            var origVp = pdfPage.getViewport({ scale: 1 });
+            var renderScale = DF.redactScale;
+            var sx = pw / (origVp.width * renderScale);
+            var sy = ph / (origVp.height * renderScale);
+            for (var ri = 0; ri < rects.length; ri++) {
+                var r = rects[ri];
+                page.drawRectangle({
+                    x: r.x * sx,
+                    y: ph - (r.y + r.h) * sy,
+                    width: r.w * sx,
+                    height: r.h * sy,
+                    color: PDFLib.rgb(0, 0, 0),
+                });
+            }
+        }
+        var bytes = await doc.save();
+        var blob = new Blob([bytes], { type: 'application/pdf' });
+        var redSuffix = _currentLang === 'en' ? '_redacted.pdf' : '_karartılmış.pdf';
+        var name = DF.redactPdfName.replace(/\.pdf$/i, '') + redSuffix;
+        downloadBlob(blob, name);
+        toast(t('toastPdfSaved'));
+    } catch (e) {
+        console.error('Redact save error:', e);
+        toast(t('toastError'));
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12M12 16.5V3"/></svg> ' + t('btnSaveRedacted');
+}
+
+// --- PDF Onar ---
+function buildRepairPdf(container) {
+    container.innerHTML = uploadZoneHTML('f_repair', '.pdf', t('labelSelectBrokenPdf')) + actionBtnHTML('btn_repair', t('btnRepairPdf'));
+    document.getElementById('f_repair').onchange = function() {
+        var file = document.getElementById('f_repair').files[0];
+        if (!file) return;
+        if (!checkFileSize(file)) { clearInput('f_repair'); return; }
+        showFileInfo('f_repair'); document.getElementById('btn_repair').disabled = false;
+    };
+    document.getElementById('btn_repair').onclick = async function() {
+        var file = document.getElementById('f_repair').files[0]; if (!file) return;
+        var btn = document.getElementById('btn_repair');
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> ' + t('repairingPdf');
+        try {
+            var buf = await file.arrayBuffer();
+            setProgress('f_repair', 30, t('readingPdf'));
+            // Method 1: Try to load with pdf-lib and re-save
+            var repaired = false;
+            try {
+                var doc = await PDFLib.PDFDocument.load(buf, { ignoreEncryption: true, throwOnInvalidObject: false });
+                var bytes = await doc.save();
+                setProgress('f_repair', 100, t('completed'));
+                var blob = new Blob([bytes], { type: 'application/pdf' });
+                var repSuffix = _currentLang === 'en' ? '_repaired.pdf' : '_onarılmış.pdf';
+                showResult(t('resultRepaired') + ' (' + fmtSize(blob.size) + ')', blob, file.name.replace(/\.pdf$/i, '') + repSuffix);
+                repaired = true;
+            } catch (e1) {
+                console.warn('pdf-lib repair failed, trying pdf.js fallback:', e1);
+            }
+            // Method 2: Fallback - render with pdf.js and create new PDF with jsPDF
+            if (!repaired) {
+                setProgress('f_repair', 40, t('renderingPages'));
+                try {
+                    var pdf = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
+                    var jsPDFLib = window.jspdf;
+                    var out = new jsPDFLib.jsPDF({ unit: 'pt', format: 'a4' });
+                    for (var i = 1; i <= pdf.numPages; i++) {
+                        if (i > 1) out.addPage();
+                        setProgress('f_repair', 40 + Math.round((i / pdf.numPages) * 55), t('pageLabel') + i + '/' + pdf.numPages);
+                        var page = await pdf.getPage(i);
+                        var vp = page.getViewport({ scale: 1.5 });
+                        var c = document.createElement('canvas');
+                        c.width = vp.width; c.height = vp.height;
+                        await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+                        var imgData = c.toDataURL('image/jpeg', 0.85);
+                        c.width = 0; c.height = 0;
+                        var cpw = out.internal.pageSize.getWidth(), cph = out.internal.pageSize.getHeight();
+                        out.addImage(imgData, 'JPEG', 0, 0, cpw, cph);
+                    }
+                    setProgress('f_repair', 100, t('completed'));
+                    var blob2 = out.output('blob');
+                    var repSuffix2 = _currentLang === 'en' ? '_repaired.pdf' : '_onarılmış.pdf';
+                    showResult(t('resultRepairedFallback') + ' (' + fmtSize(blob2.size) + ')', blob2, file.name.replace(/\.pdf$/i, '') + repSuffix2);
+                } catch (e2) {
+                    console.error('Fallback repair also failed:', e2);
+                    toast(t('toastRepairFailed'));
+                }
+            }
+        } catch (e) {
+            console.error('Repair PDF error:', e);
+            toast(t('toastRepairFailed'));
+        }
+        btn.disabled = false; btn.innerHTML = t('btnRepairPdf');
+    };
+}
+
+// --- HTML -> PDF ---
+function buildHtml2Pdf(container) {
+    container.innerHTML =
+        '<div><label class="text-sm font-medium text-gray-700 dark:text-gray-300">' + t('labelHtmlCode') + '</label>' +
+        '<textarea id="html2pdfInput" class="mt-1 w-full h-48 px-4 py-3 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-xl focus:border-navy-400 outline-none text-sm font-mono" placeholder="' + escapeHTML(t('htmlPlaceholder')) + '"></textarea></div>' +
+        '<div class="flex gap-3 mt-4">' +
+            '<button id="btn_h2p_preview" class="flex-1 py-2.5 rounded-xl border-2 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 font-semibold text-sm hover:border-gray-300" onclick="html2pdfPreview()">' + t('btnPreviewHtml') + '</button>' +
+        '</div>' +
+        '<div id="html2pdfPreviewWrap" class="hidden mt-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden" style="height:400px;">' +
+            '<iframe id="html2pdfIframe" class="w-full h-full border-0"></iframe>' +
+        '</div>' +
+        '<div id="html2pdfProgress" class="hidden mt-4"><div class="h-1.5 bg-gray-200 rounded-full overflow-hidden"><div id="html2pdfBar" class="progress-fill h-full bg-gradient-to-r from-navy-500 to-brand-500 rounded-full" style="width:0%"></div></div><p id="html2pdfPtext" class="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center"></p></div>' +
+        actionBtnHTML('btn_h2p', t('btnConvertHtml'));
+    document.getElementById('html2pdfInput').oninput = function() {
+        document.getElementById('btn_h2p').disabled = !this.value.trim();
+    };
+    document.getElementById('btn_h2p').onclick = async function() {
+        var html = document.getElementById('html2pdfInput').value.trim();
+        if (!html) { toast(t('toastEmptyHtml')); return; }
+        var btn = document.getElementById('btn_h2p');
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> ' + t('convertingHtml');
+        try {
+            document.getElementById('html2pdfProgress').classList.remove('hidden');
+            document.getElementById('html2pdfBar').style.width = '20%';
+            document.getElementById('html2pdfPtext').textContent = t('convertingHtml');
+            // Create an offscreen iframe for rendering
+            var iframe = document.createElement('iframe');
+            iframe.style.position = 'fixed';
+            iframe.style.left = '-9999px';
+            iframe.style.top = '0';
+            iframe.style.width = '794px'; // A4 width at 96dpi
+            iframe.style.height = '1123px'; // A4 height at 96dpi
+            iframe.style.border = 'none';
+            document.body.appendChild(iframe);
+            var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            iframeDoc.open();
+            iframeDoc.write('<!DOCTYPE html><html><head><style>body{margin:20px;font-family:Arial,sans-serif;}</style></head><body>' + html + '</body></html>');
+            iframeDoc.close();
+            // Wait for content to render
+            await new Promise(function(r) { setTimeout(r, 500); });
+            document.getElementById('html2pdfBar').style.width = '50%';
+            var canvas = await html2canvas(iframeDoc.body, {
+                scale: 2,
+                useCORS: true,
+                width: 794,
+                windowWidth: 794,
+            });
+            document.body.removeChild(iframe);
+            document.getElementById('html2pdfBar').style.width = '80%';
+            var jsPDFLib = window.jspdf;
+            var pdf = new jsPDFLib.jsPDF({ unit: 'pt', format: 'a4' });
+            var pw = pdf.internal.pageSize.getWidth();
+            var ph = pdf.internal.pageSize.getHeight();
+            var imgData = canvas.toDataURL('image/png');
+            // [L-4] Clean up canvas
+            var imgW = canvas.width, imgH = canvas.height;
+            canvas.width = 0; canvas.height = 0;
+            var ratio = imgW / imgH;
+            var drawW = pw;
+            var drawH = drawW / ratio;
+            // If content is taller than one page, we split into pages
+            if (drawH <= ph) {
+                pdf.addImage(imgData, 'PNG', 0, 0, drawW, drawH);
+            } else {
+                // Multi-page: split image
+                var pageCount = Math.ceil(drawH / ph);
+                for (var pi = 0; pi < pageCount; pi++) {
+                    if (pi > 0) pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, -(pi * ph), drawW, drawH);
+                }
+            }
+            document.getElementById('html2pdfBar').style.width = '100%';
+            document.getElementById('html2pdfPtext').textContent = t('completed');
+            var blob = pdf.output('blob');
+            var htmlPdfName = _currentLang === 'en' ? 'html_output.pdf' : 'html_çıktı.pdf';
+            showResult(t('resultHtml2pdf') + ' (' + fmtSize(blob.size) + ')', blob, htmlPdfName);
+        } catch (e) {
+            console.error('HTML to PDF error:', e);
+            toast(t('toastError'));
+        }
+        btn.disabled = false; btn.innerHTML = t('btnConvertHtml');
+    };
+}
+
+window.html2pdfPreview = function() {
+    var html = document.getElementById('html2pdfInput').value.trim();
+    if (!html) { toast(t('toastEmptyHtml')); return; }
+    var wrap = document.getElementById('html2pdfPreviewWrap');
+    wrap.classList.remove('hidden');
+    var iframe = document.getElementById('html2pdfIframe');
+    var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+    iframeDoc.open();
+    iframeDoc.write('<!DOCTYPE html><html><head><style>body{margin:20px;font-family:Arial,sans-serif;}</style></head><body>' + html + '</body></html>');
+    iframeDoc.close();
+};
 
 // =============================================
 // PDF EDITOR
