@@ -25,6 +25,7 @@
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js" integrity="sha384-weMABwrltA6jWR8DDe9Jp5blk+tZQh7ugpCsF3JwSA53WZM9/14PjS5LAJNHNjAI" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js" integrity="sha384-2p6U+1mmqF10USehFeRiyG2ESG9FwIqN+jxULn5w9jjQIihSn9Pt13dVCn/Hawjn" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
@@ -318,6 +319,20 @@
                 </div>
                 <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-1" data-i18n="cardSignPdf">PDF İmzala</h3>
                 <p class="text-xs text-gray-500 dark:text-gray-400" data-i18n="cardSignPdfDesc">PDF'ye el yazısı veya metin imzası ekleyin</p>
+            </div>
+            <div class="tool-card cursor-pointer bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-navy-200 dark:hover:border-navy-400" onclick="openTool('ocrpdf')">
+                <div class="w-11 h-11 rounded-xl bg-navy-50 flex items-center justify-center mb-3">
+                    <svg class="w-5.5 h-5.5 text-navy-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/><path d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+                </div>
+                <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-1" data-i18n="cardOcrPdf">OCR PDF</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400" data-i18n="cardOcrPdfDesc">Taranmış PDF'den metin çıkarın</p>
+            </div>
+            <div class="tool-card cursor-pointer bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-navy-200 dark:hover:border-navy-400" onclick="openTool('comparepdf')">
+                <div class="w-11 h-11 rounded-xl bg-navy-50 flex items-center justify-center mb-3">
+                    <svg class="w-5.5 h-5.5 text-navy-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
+                </div>
+                <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-1" data-i18n="cardComparePdf">PDF Karşılaştır</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400" data-i18n="cardComparePdfDesc">İki PDF dosyasını yan yana karşılaştırın</p>
             </div>
         </div>
     </div>
@@ -709,6 +724,37 @@ var i18n = {
         tabDraw: 'Çizim',
         tabText: 'Metin',
         labelSignPlaced: 'İmza yerleştirildi. Kaydetmek için butona tıklayın.',
+        // OCR PDF
+        cardOcrPdf: 'OCR PDF',
+        cardOcrPdfDesc: 'Taranmış PDF\'den metin çıkarın',
+        toolOcrPdfTitle: 'OCR PDF',
+        toolOcrPdfDesc: 'Taranmış veya görsel tabanlı PDF\'den metin çıkarın (OCR).',
+        labelOcrLang: 'Tanıma Dili',
+        ocrLangTur: 'Türkçe',
+        ocrLangEng: 'İngilizce',
+        ocrLangBoth: 'Türkçe + İngilizce',
+        btnOcrPdf: 'Metni Çıkar',
+        ocrProcessing: 'OCR işleniyor...',
+        ocrPageProgress: 'Sayfa {current}/{total} tanınıyor...',
+        ocrComplete: 'OCR tamamlandı',
+        ocrWarning: 'Not: OCR işlemi CPU yoğundur ve büyük PDF\'ler için zaman alabilir.',
+        btnDownloadTxt: 'TXT Olarak İndir',
+        btnShowText: 'Metni Göster',
+        ocrResultLabel: 'Çıkarılan Metin',
+        resultOcrExtracted: ' sayfadan metin çıkarıldı',
+        // Compare PDF
+        cardComparePdf: 'PDF Karşılaştır',
+        cardComparePdfDesc: 'İki PDF dosyasını yan yana karşılaştırın',
+        toolComparePdfTitle: 'PDF Karşılaştır',
+        toolComparePdfDesc: 'İki PDF dosyasını sayfa sayfa yan yana karşılaştırın ve farkları görün.',
+        labelPdf1: 'PDF 1',
+        labelPdf2: 'PDF 2',
+        btnCompare: 'Karşılaştır',
+        comparing: 'Karşılaştırılıyor...',
+        compareDiffToggle: 'Fark Göster',
+        comparePageMismatch: 'Uyarı: PDF\'ler farklı sayfa sayısına sahip (PDF 1: {p1}, PDF 2: {p2})',
+        compareNoDiff: 'Bu sayfada fark bulunamadı',
+        resultCompared: 'PDF\'ler karşılaştırıldı',
     },
     en: {
         // Page title
@@ -1007,6 +1053,37 @@ var i18n = {
         tabDraw: 'Draw',
         tabText: 'Text',
         labelSignPlaced: 'Signature placed. Click the button to save.',
+        // OCR PDF
+        cardOcrPdf: 'OCR PDF',
+        cardOcrPdfDesc: 'Extract text from scanned PDFs',
+        toolOcrPdfTitle: 'OCR PDF',
+        toolOcrPdfDesc: 'Extract text from scanned or image-based PDFs using OCR.',
+        labelOcrLang: 'Recognition Language',
+        ocrLangTur: 'Turkish',
+        ocrLangEng: 'English',
+        ocrLangBoth: 'Turkish + English',
+        btnOcrPdf: 'Extract Text',
+        ocrProcessing: 'Processing OCR...',
+        ocrPageProgress: 'Recognizing page {current}/{total}...',
+        ocrComplete: 'OCR complete',
+        ocrWarning: 'Note: OCR is CPU-intensive and may take time for large PDFs.',
+        btnDownloadTxt: 'Download as TXT',
+        btnShowText: 'Show Text',
+        ocrResultLabel: 'Extracted Text',
+        resultOcrExtracted: ' pages text extracted',
+        // Compare PDF
+        cardComparePdf: 'Compare PDFs',
+        cardComparePdfDesc: 'Compare two PDF files side by side',
+        toolComparePdfTitle: 'Compare PDFs',
+        toolComparePdfDesc: 'Compare two PDF files page by page side by side and see differences.',
+        labelPdf1: 'PDF 1',
+        labelPdf2: 'PDF 2',
+        btnCompare: 'Compare',
+        comparing: 'Comparing...',
+        compareDiffToggle: 'Show Diff',
+        comparePageMismatch: 'Warning: PDFs have different page counts (PDF 1: {p1}, PDF 2: {p2})',
+        compareNoDiff: 'No differences found on this page',
+        resultCompared: 'PDFs compared',
     }
 };
 
@@ -1196,6 +1273,8 @@ function openTool(id) {
         reorderpages: { titleKey: 'toolReorderPagesTitle', descKey: 'toolReorderPagesDesc', build: buildReorderPages },
         croppdf: { titleKey: 'toolCropPdfTitle', descKey: 'toolCropPdfDesc', build: buildCropPdf },
         signpdf: { titleKey: 'toolSignPdfTitle', descKey: 'toolSignPdfDesc', build: buildSignPdf },
+        ocrpdf: { titleKey: 'toolOcrPdfTitle', descKey: 'toolOcrPdfDesc', build: buildOcrPdf },
+        comparepdf: { titleKey: 'toolComparePdfTitle', descKey: 'toolComparePdfDesc', build: buildComparePdf },
     };
 
     var tl = tools[id];
@@ -3730,6 +3809,270 @@ window.signPrevPage = async function() {
 window.signNextPage = async function() {
     if (DF._signPdf && DF._signPageNum < DF._signPdf.numPages) await signRenderPage(DF._signPageNum + 1);
 };
+// --- OCR PDF ---
+function buildOcrPdf(container) {
+    container.innerHTML = uploadZoneHTML('f_ocr', '.pdf', t('labelSelectPdf')) +
+        '<div class="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl"><p class="text-sm text-amber-700 dark:text-amber-300">' + t('ocrWarning') + '</p></div>' +
+        '<div class="mt-4"><label class="text-sm font-medium text-gray-700 dark:text-gray-300">' + t('labelOcrLang') + '</label>' +
+        '<select id="ocrLangSel" class="mt-1 w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-xl focus:border-navy-400 outline-none text-sm">' +
+        '<option value="tur">' + escapeHTML(t('ocrLangTur')) + '</option>' +
+        '<option value="eng">' + escapeHTML(t('ocrLangEng')) + '</option>' +
+        '<option value="tur+eng">' + escapeHTML(t('ocrLangBoth')) + '</option>' +
+        '</select></div>' +
+        actionBtnHTML('btn_ocr', t('btnOcrPdf')) +
+        '<div id="ocrOutputArea" class="hidden mt-6">' +
+        '<div class="flex gap-3 mb-3">' +
+        '<button id="btnOcrDownloadTxt" class="px-4 py-2 rounded-xl font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition shadow-sm text-sm">' + escapeHTML(t('btnDownloadTxt')) + '</button>' +
+        '<button id="btnOcrShowText" class="px-4 py-2 rounded-xl font-semibold text-white bg-navy-600 hover:bg-navy-700 transition shadow-sm text-sm">' + escapeHTML(t('btnShowText')) + '</button>' +
+        '</div>' +
+        '<div id="ocrTextWrap" class="hidden"><label class="text-sm font-medium text-gray-700 dark:text-gray-300">' + t('ocrResultLabel') + '</label>' +
+        '<textarea id="ocrTextArea" readonly class="mt-1 w-full h-64 px-4 py-3 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-xl text-sm font-mono" style="font-family:monospace;"></textarea></div>' +
+        '</div>';
+    document.getElementById('f_ocr').onchange = function() {
+        var file = document.getElementById('f_ocr').files[0];
+        if (!file) return;
+        if (!checkFileSize(file)) { clearInput('f_ocr'); return; }
+        showFileInfo('f_ocr'); document.getElementById('btn_ocr').disabled = false;
+        document.getElementById('ocrOutputArea').classList.add('hidden');
+        file.arrayBuffer().then(function(buf) {
+            if (!validatePdfMagic(buf)) { toast(t('toastInvalidPdf')); clearInput('f_ocr'); document.getElementById('btn_ocr').disabled = true; return; }
+        });
+    };
+    document.getElementById('btn_ocr').onclick = async function() {
+        var file = document.getElementById('f_ocr').files[0]; if (!file) return;
+        var lang = document.getElementById('ocrLangSel').value;
+        var btn = document.getElementById('btn_ocr');
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> ' + t('ocrProcessing');
+        document.getElementById('ocrOutputArea').classList.add('hidden');
+        try {
+            var buf = await file.arrayBuffer();
+            if (!validatePdfMagic(buf)) { toast(t('toastInvalidPdf')); btn.disabled = false; btn.innerHTML = t('btnOcrPdf'); return; }
+            var pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+            var totalPages = pdf.numPages;
+            var allText = '';
+            var worker = await Tesseract.createWorker(lang, 1, {
+                logger: function() {}
+            });
+            for (var i = 1; i <= totalPages; i++) {
+                var progressText = t('ocrPageProgress').replace('{current}', i).replace('{total}', totalPages);
+                setProgress('f_ocr', Math.round((i - 1) / totalPages * 100), progressText);
+                var page = await pdf.getPage(i);
+                var vp = page.getViewport({ scale: 2.0 });
+                var canvas = document.createElement('canvas');
+                canvas.width = vp.width; canvas.height = vp.height;
+                var ctx = canvas.getContext('2d');
+                await page.render({ canvasContext: ctx, viewport: vp }).promise;
+                var dataUrl = canvas.toDataURL('image/png');
+                var result = await worker.recognize(dataUrl);
+                allText += '--- ' + t('edPage') + ' ' + i + ' ---\n' + result.data.text + '\n\n';
+            }
+            await worker.terminate();
+            setProgress('f_ocr', 100, t('ocrComplete'));
+            DF._ocrText = allText;
+            DF._ocrFileName = file.name.replace(/\.pdf$/i, '');
+            document.getElementById('ocrOutputArea').classList.remove('hidden');
+            document.getElementById('ocrTextWrap').classList.add('hidden');
+            document.getElementById('btnOcrDownloadTxt').onclick = function() {
+                var blob = new Blob([DF._ocrText], { type: 'text/plain;charset=utf-8' });
+                downloadBlob(blob, DF._ocrFileName + '_ocr.txt');
+            };
+            document.getElementById('btnOcrShowText').onclick = function() {
+                var wrap = document.getElementById('ocrTextWrap');
+                wrap.classList.toggle('hidden');
+                document.getElementById('ocrTextArea').value = DF._ocrText;
+            };
+            var resultMsg = totalPages + t('resultOcrExtracted');
+            var txtBlob = new Blob([allText], { type: 'text/plain;charset=utf-8' });
+            showResult(resultMsg, txtBlob, DF._ocrFileName + '_ocr.txt');
+        } catch (e) {
+            console.error('OCR error:', e);
+            toast(t('toastError'));
+        }
+        btn.disabled = false; btn.innerHTML = t('btnOcrPdf');
+    };
+}
+
+// --- PDF Karsilastir ---
+function buildComparePdf(container) {
+    container.innerHTML =
+        '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">' +
+        '<div><h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">' + escapeHTML(t('labelPdf1')) + '</h3>' +
+        uploadZoneHTML('f_cmp1', '.pdf', t('labelSelectPdf')) + '</div>' +
+        '<div><h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">' + escapeHTML(t('labelPdf2')) + '</h3>' +
+        uploadZoneHTML('f_cmp2', '.pdf', t('labelSelectPdf')) + '</div>' +
+        '</div>' +
+        actionBtnHTML('btn_cmp', t('btnCompare')) +
+        '<div id="cmpResult" class="hidden mt-6">' +
+        '<div id="cmpWarning" class="hidden mb-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl"><p id="cmpWarningText" class="text-sm text-amber-700 dark:text-amber-300"></p></div>' +
+        '<div class="flex items-center justify-between mb-4">' +
+        '<div class="flex items-center gap-3">' +
+        '<button id="cmpPrev" class="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 hover:border-navy-400 transition">' + escapeHTML(t('edPrev')) + '</button>' +
+        '<span id="cmpPageInfo" class="text-sm font-medium text-gray-700 dark:text-gray-300"></span>' +
+        '<button id="cmpNext" class="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 hover:border-navy-400 transition">' + escapeHTML(t('edNext')) + '</button>' +
+        '</div>' +
+        '<label class="flex items-center gap-2 cursor-pointer">' +
+        '<input type="checkbox" id="cmpDiffToggle" class="w-4 h-4 rounded border-gray-300 text-navy-600 focus:ring-navy-500">' +
+        '<span class="text-sm font-medium text-gray-700 dark:text-gray-300">' + escapeHTML(t('compareDiffToggle')) + '</span>' +
+        '</label>' +
+        '</div>' +
+        '<div class="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-auto" style="max-height:70vh;">' +
+        '<div class="text-center"><p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">' + escapeHTML(t('labelPdf1')) + '</p><canvas id="cmpCanvas1" class="mx-auto shadow rounded border border-gray-200 dark:border-gray-700"></canvas></div>' +
+        '<div class="text-center"><p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">' + escapeHTML(t('labelPdf2')) + '</p><div style="position:relative;display:inline-block;"><canvas id="cmpCanvas2" class="shadow rounded border border-gray-200 dark:border-gray-700"></canvas><canvas id="cmpDiffCanvas" style="position:absolute;top:0;left:0;pointer-events:none;opacity:0.5;" class="hidden"></canvas></div></div>' +
+        '</div>' +
+        '</div>';
+
+    function checkReady() {
+        var f1 = document.getElementById('f_cmp1').files[0];
+        var f2 = document.getElementById('f_cmp2').files[0];
+        document.getElementById('btn_cmp').disabled = !(f1 && f2);
+    }
+    document.getElementById('f_cmp1').onchange = function() {
+        var file = document.getElementById('f_cmp1').files[0];
+        if (!file) return;
+        if (!checkFileSize(file)) { clearInput('f_cmp1'); return; }
+        showFileInfo('f_cmp1');
+        file.arrayBuffer().then(function(buf) {
+            if (!validatePdfMagic(buf)) { toast(t('toastInvalidPdf')); clearInput('f_cmp1'); return; }
+            checkReady();
+        });
+    };
+    document.getElementById('f_cmp2').onchange = function() {
+        var file = document.getElementById('f_cmp2').files[0];
+        if (!file) return;
+        if (!checkFileSize(file)) { clearInput('f_cmp2'); return; }
+        showFileInfo('f_cmp2');
+        file.arrayBuffer().then(function(buf) {
+            if (!validatePdfMagic(buf)) { toast(t('toastInvalidPdf')); clearInput('f_cmp2'); return; }
+            checkReady();
+        });
+    };
+
+    document.getElementById('btn_cmp').onclick = async function() {
+        var file1 = document.getElementById('f_cmp1').files[0]; if (!file1) return;
+        var file2 = document.getElementById('f_cmp2').files[0]; if (!file2) return;
+        var btn = document.getElementById('btn_cmp');
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> ' + t('comparing');
+        document.getElementById('cmpResult').classList.add('hidden');
+        try {
+            var buf1 = await file1.arrayBuffer();
+            var buf2 = await file2.arrayBuffer();
+            if (!validatePdfMagic(buf1) || !validatePdfMagic(buf2)) { toast(t('toastInvalidPdf')); btn.disabled = false; btn.innerHTML = t('btnCompare'); return; }
+            var pdf1 = await pdfjsLib.getDocument({ data: buf1 }).promise;
+            var pdf2 = await pdfjsLib.getDocument({ data: buf2 }).promise;
+            DF._cmpPdf1 = pdf1; DF._cmpPdf2 = pdf2;
+            DF._cmpPageNum = 1;
+            DF._cmpMaxPages = Math.max(pdf1.numPages, pdf2.numPages);
+            document.getElementById('cmpResult').classList.remove('hidden');
+            // Show warning if page counts differ
+            if (pdf1.numPages !== pdf2.numPages) {
+                document.getElementById('cmpWarning').classList.remove('hidden');
+                document.getElementById('cmpWarningText').textContent = t('comparePageMismatch').replace('{p1}', pdf1.numPages).replace('{p2}', pdf2.numPages);
+            } else {
+                document.getElementById('cmpWarning').classList.add('hidden');
+            }
+            await cmpRenderPage(1);
+            setProgress('f_cmp1', 100, t('resultCompared'));
+        } catch (e) {
+            console.error('Compare error:', e);
+            toast(t('toastError'));
+        }
+        btn.disabled = false; btn.innerHTML = t('btnCompare');
+    };
+
+    document.getElementById('cmpPrev').onclick = function() {
+        if (DF._cmpPageNum > 1) cmpRenderPage(DF._cmpPageNum - 1);
+    };
+    document.getElementById('cmpNext').onclick = function() {
+        if (DF._cmpPageNum < DF._cmpMaxPages) cmpRenderPage(DF._cmpPageNum + 1);
+    };
+    document.getElementById('cmpDiffToggle').onchange = function() {
+        var diffCanvas = document.getElementById('cmpDiffCanvas');
+        if (this.checked) { diffCanvas.classList.remove('hidden'); } else { diffCanvas.classList.add('hidden'); }
+    };
+}
+
+async function cmpRenderPage(num) {
+    DF._cmpPageNum = num;
+    var pdf1 = DF._cmpPdf1, pdf2 = DF._cmpPdf2;
+    var canvas1 = document.getElementById('cmpCanvas1');
+    var canvas2 = document.getElementById('cmpCanvas2');
+    var diffCanvas = document.getElementById('cmpDiffCanvas');
+    var maxW = Math.min(400, (window.innerWidth - 80) / 2);
+
+    // Render PDF 1 page
+    if (num <= pdf1.numPages) {
+        var page1 = await pdf1.getPage(num);
+        var vp1 = page1.getViewport({ scale: 1.0 });
+        var scale1 = Math.min(maxW / vp1.width, 1.5);
+        var svp1 = page1.getViewport({ scale: scale1 });
+        canvas1.width = svp1.width; canvas1.height = svp1.height;
+        await page1.render({ canvasContext: canvas1.getContext('2d'), viewport: svp1 }).promise;
+    } else {
+        canvas1.width = 300; canvas1.height = 400;
+        var ctx1 = canvas1.getContext('2d');
+        ctx1.fillStyle = '#f3f4f6'; ctx1.fillRect(0, 0, 300, 400);
+        ctx1.fillStyle = '#9ca3af'; ctx1.font = '14px Inter, sans-serif'; ctx1.textAlign = 'center';
+        ctx1.fillText('-', 150, 200);
+    }
+
+    // Render PDF 2 page
+    if (num <= pdf2.numPages) {
+        var page2 = await pdf2.getPage(num);
+        var vp2 = page2.getViewport({ scale: 1.0 });
+        var scale2 = Math.min(maxW / vp2.width, 1.5);
+        var svp2 = page2.getViewport({ scale: scale2 });
+        canvas2.width = svp2.width; canvas2.height = svp2.height;
+        await page2.render({ canvasContext: canvas2.getContext('2d'), viewport: svp2 }).promise;
+    } else {
+        canvas2.width = 300; canvas2.height = 400;
+        var ctx2 = canvas2.getContext('2d');
+        ctx2.fillStyle = '#f3f4f6'; ctx2.fillRect(0, 0, 300, 400);
+        ctx2.fillStyle = '#9ca3af'; ctx2.font = '14px Inter, sans-serif'; ctx2.textAlign = 'center';
+        ctx2.fillText('-', 150, 200);
+    }
+
+    // Compute diff overlay
+    var w = Math.max(canvas1.width, canvas2.width);
+    var h = Math.max(canvas1.height, canvas2.height);
+    diffCanvas.width = canvas2.width; diffCanvas.height = canvas2.height;
+    var diffCtx = diffCanvas.getContext('2d');
+    diffCtx.clearRect(0, 0, diffCanvas.width, diffCanvas.height);
+
+    if (num <= pdf1.numPages && num <= pdf2.numPages) {
+        var data1 = canvas1.getContext('2d').getImageData(0, 0, canvas1.width, canvas1.height);
+        var data2 = canvas2.getContext('2d').getImageData(0, 0, canvas2.width, canvas2.height);
+        var minW = Math.min(data1.width, data2.width);
+        var minH = Math.min(data1.height, data2.height);
+        var diffImg = diffCtx.createImageData(diffCanvas.width, diffCanvas.height);
+        var hasDiff = false;
+        for (var y = 0; y < minH; y++) {
+            for (var x = 0; x < minW; x++) {
+                var idx1 = (y * data1.width + x) * 4;
+                var idx2 = (y * data2.width + x) * 4;
+                var idxD = (y * diffCanvas.width + x) * 4;
+                var dr = Math.abs(data1.data[idx1] - data2.data[idx2]);
+                var dg = Math.abs(data1.data[idx1 + 1] - data2.data[idx2 + 1]);
+                var db = Math.abs(data1.data[idx1 + 2] - data2.data[idx2 + 2]);
+                if (dr > 20 || dg > 20 || db > 20) {
+                    diffImg.data[idxD] = 255;
+                    diffImg.data[idxD + 1] = 50;
+                    diffImg.data[idxD + 2] = 80;
+                    diffImg.data[idxD + 3] = 180;
+                    hasDiff = true;
+                } else {
+                    diffImg.data[idxD + 3] = 0;
+                }
+            }
+        }
+        diffCtx.putImageData(diffImg, 0, 0);
+    }
+
+    // Update page info
+    document.getElementById('cmpPageInfo').textContent = t('edPage') + ' ' + num + ' / ' + DF._cmpMaxPages;
+    // Toggle diff visibility based on checkbox
+    if (document.getElementById('cmpDiffToggle').checked) { diffCanvas.classList.remove('hidden'); } else { diffCanvas.classList.add('hidden'); }
+}
+
 </script>
 </body>
 </html>
