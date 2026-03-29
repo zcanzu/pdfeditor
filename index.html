@@ -1,0 +1,2274 @@
+<!DOCTYPE html>
+<html lang="tr" id="htmlRoot">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- CSP: Active when served over HTTPS. Disabled for file:// protocol compatibility.
+         Deploy with server-side CSP header for production:
+         script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net https://cdn.tailwindcss.com;
+         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+         font-src https://fonts.gstatic.com https://cdn.jsdelivr.net;
+         img-src 'self' data: blob:; connect-src 'self' https://cdn.jsdelivr.net;
+         worker-src blob: https://cdnjs.cloudflare.com; -->
+    <title id="pageTitle">DocForge - PDF & UDF Araclari</title>
+    <!-- Tailwind CDN is a runtime compiler that generates dynamic CSS based on page content,
+         so SRI integrity hashes cannot work with it (the response varies per request).
+         We pin to a specific version for consistency. -->
+    <script src="https://cdn.tailwindcss.com/3.4.1"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" integrity="sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js" integrity="sha384-weMABwrltA6jWR8DDe9Jp5blk+tZQh7ugpCsF3JwSA53WZM9/14PjS5LAJNHNjAI" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js" integrity="sha384-2p6U+1mmqF10USehFeRiyG2ESG9FwIqN+jxULn5w9jjQIihSn9Pt13dVCn/Hawjn" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+    tailwind.config = {
+        darkMode: 'class',
+        theme: {
+            extend: {
+                fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                colors: {
+                    brand: { 50:'#fdf4f3',100:'#fce8e6',200:'#fad5d1',300:'#f5b3ac',400:'#ed8578',500:'#e25d4e',600:'#ca3f30',700:'#a93224',800:'#8c2c22',900:'#7a2b23',950:'#42120e' },
+                    navy: { 50:'#f0f3ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#2e2a8f',900:'#1e1b5e',950:'#0f0d30' },
+                }
+            }
+        }
+    }
+    </script>
+    <style>
+        .tool-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .tool-card:hover { transform: translateY(-6px); }
+        .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        .upload-zone { transition: all 0.3s; }
+        .upload-zone.dragover { border-color: #6366f1; background: rgba(99,102,241,0.08); transform: scale(1.01); }
+        .upload-zone.has-file { border-color: #10b981; background: rgba(16,185,129,0.06); }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+        .spinner { border:3px solid rgba(255,255,255,0.2); border-top-color:#fff; border-radius:50%; width:20px; height:20px; animation:spin .6s linear infinite; display:inline-block; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        .progress-fill { transition: width 0.4s ease; }
+        [data-theme="dark"] { color-scheme: dark; }
+
+        /* PDF Editor styles */
+        .editor-toolbar { display:flex; flex-wrap:wrap; gap:4px; padding:8px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; }
+        .dark .editor-toolbar { background:#1e293b; border-color:#334155; }
+        .editor-toolbar button { padding:6px 12px; border:1px solid transparent; border-radius:8px; font-size:13px; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:5px; background:white; color:#475569; transition:all 0.2s; }
+        .dark .editor-toolbar button { background:#0f172a; color:#94a3b8; border-color:#334155; }
+        .editor-toolbar button:hover { border-color:#c7d2fe; background:#eef2ff; color:#4338ca; }
+        .dark .editor-toolbar button:hover { border-color:#6366f1; background:#1e1b4b; color:#a5b4fc; }
+        .editor-toolbar button.active { border-color:#6366f1; background:#eef2ff; color:#4338ca; box-shadow:0 0 0 1px #6366f1; }
+        .dark .editor-toolbar button.active { background:#1e1b4b; color:#a5b4fc; }
+        .editor-toolbar .sep { width:1px; background:#e2e8f0; margin:0 4px; align-self:stretch; }
+        .dark .editor-toolbar .sep { background:#334155; }
+        .pdf-editor-canvas-wrap { position:relative; display:inline-block; cursor:crosshair; box-shadow:0 4px 24px rgba(0,0,0,0.12); border-radius:4px; overflow:hidden; }
+        .pdf-editor-canvas-wrap canvas { display:block; }
+        .editor-page-nav { display:flex; align-items:center; justify-content:center; gap:12px; padding:12px; }
+        .editor-page-nav button { padding:6px 14px; border:1px solid #e2e8f0; border-radius:8px; font-size:13px; font-weight:500; cursor:pointer; background:white; color:#475569; }
+        .dark .editor-page-nav button { background:#1e293b; color:#94a3b8; border-color:#334155; }
+        .editor-page-nav button:hover { border-color:#6366f1; color:#4338ca; }
+        .dark .editor-page-nav button:hover { border-color:#6366f1; color:#a5b4fc; }
+        .text-input-overlay { position:absolute; background:transparent; border:2px dashed #6366f1; outline:none; font-family:sans-serif; color:#1e1b4b; resize:none; padding:2px 4px; min-width:50px; min-height:24px; z-index:10; }
+        .ed-text-item { position:absolute; background:white; border:1px solid transparent; cursor:text; white-space:pre; overflow:visible; transition:border-color 0.15s, box-shadow 0.15s; line-height:1.2; padding:0 2px; box-sizing:border-box; color:#111827; }
+        .ed-text-item:hover { border-color:#c7d2fe; box-shadow:0 0 0 1px rgba(99,102,241,0.15); z-index:21; }
+        .ed-text-item:focus { border-color:#6366f1; background:#fff; outline:none; box-shadow:0 0 0 2px rgba(99,102,241,0.3); z-index:22; }
+        .ed-text-item.modified { background:#fef9c3; border-color:#fbbf24; }
+        .ed-text-item.modified:focus { box-shadow:0 0 0 2px rgba(251,191,36,0.4); }
+        .ed-text-layer { position:absolute; top:0; left:0; width:100%; height:100%; z-index:5; pointer-events:none; }
+        .ed-text-layer .ed-text-item { pointer-events:auto; }
+        .ed-text-layer.edit-active .ed-text-item { pointer-events:auto; }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans min-h-screen transition-colors duration-300">
+
+<!-- NAV -->
+<nav class="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200/60 dark:border-gray-700/60">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+        <a href="#" onclick="showHome()" class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-navy-600 to-brand-500 flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            </div>
+            <span class="text-xl font-bold bg-gradient-to-r from-navy-700 to-brand-600 bg-clip-text text-transparent">DocForge</span>
+        </a>
+        <div class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600 dark:text-gray-300">
+            <a href="#" onclick="showHome()" class="hover:text-navy-600 transition" data-i18n="navHome">Ana Sayfa</a>
+            <a href="#uyap" class="hover:text-navy-600 transition">UYAP</a>
+            <a href="#pdf" class="hover:text-navy-600 transition">PDF</a>
+        </div>
+        <div class="flex items-center gap-3">
+            <button onclick="toggleLang()" id="langToggle" class="px-2.5 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition text-xs font-bold text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700" title="Dil / Language">
+                TR | <span class="opacity-50">EN</span>
+            </button>
+            <button onclick="toggleDark()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition text-gray-500 dark:text-gray-400" title="Tema">
+                <svg id="themeIcon" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/></svg>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero" class="relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800"></div>
+    <div class="absolute inset-0 opacity-30" style="background-image:radial-gradient(circle at 20% 50%, rgba(99,102,241,0.3) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(226,93,78,0.2) 0%, transparent 50%);"></div>
+    <div class="relative max-w-4xl mx-auto px-4 py-20 sm:py-28 text-center">
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight tracking-tight" data-i18n-html="heroTitle">
+            Tum Belge Araclariniz<br><span class="bg-gradient-to-r from-brand-400 to-amber-400 bg-clip-text text-transparent">Tek Bir Yerde</span>
+        </h1>
+        <p class="mt-5 text-lg sm:text-xl text-navy-200 max-w-2xl mx-auto leading-relaxed" data-i18n="heroDesc">
+            PDF duzenleme, donusturme, birlestirme ve UYAP UDF islemleri. Tamamen tarayicinizda, ucretsiz ve guvenli.
+        </p>
+        <div class="mt-8 flex flex-wrap justify-center gap-3">
+            <span class="px-3 py-1.5 rounded-full text-xs font-semibold bg-white/10 text-white/80 border border-white/10" data-i18n="heroNoUpload">Sunucuya yukleme yok</span>
+            <span class="px-3 py-1.5 rounded-full text-xs font-semibold bg-white/10 text-white/80 border border-white/10" data-i18n="heroFree">Tamamen ucretsiz</span>
+            <span class="px-3 py-1.5 rounded-full text-xs font-semibold bg-white/10 text-white/80 border border-white/10" data-i18n="heroUnlimited">Sinirsiz kullanim</span>
+        </div>
+    </div>
+</section>
+
+<!-- TOOLS GRID (homepage) -->
+<section id="homeSection" class="max-w-7xl mx-auto px-4 sm:px-6 py-14">
+    <!-- UYAP / UDF Tools -->
+    <div id="uyap" class="mb-14">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white" data-i18n="uyapTitle">UYAP / UDF Araclari</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400" data-i18n="uyapDesc">Ulusal Yargi Agi Bilisim Sistemi dosya islemleri</p>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div class="tool-card cursor-pointer bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-brand-200 dark:hover:border-brand-500" onclick="openTool('pdf2udf')">
+                <div class="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6 text-brand-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+                </div>
+                <h3 class="font-semibold text-gray-900 dark:text-white mb-1" data-i18n="cardPdf2udf">PDF &rarr; UDF</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed" data-i18n="cardPdf2udfDesc">PDF dosyalarini UYAP editorune uyumlu UDF formatina donusturun</p>
+            </div>
+            <div class="tool-card cursor-pointer bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-brand-200 dark:hover:border-brand-500" onclick="openTool('udf2pdf')">
+                <div class="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6 text-brand-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12M12 16.5V3"/></svg>
+                </div>
+                <h3 class="font-semibold text-gray-900 dark:text-white mb-1" data-i18n="cardUdf2pdf">UDF &rarr; PDF</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed" data-i18n="cardUdf2pdfDesc">UDF dosyalarini PDF formatina geri donusturun</p>
+            </div>
+            <div class="tool-card cursor-pointer bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-brand-200 dark:hover:border-brand-500" onclick="openTool('text2udf')">
+                <div class="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6 text-brand-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+                </div>
+                <h3 class="font-semibold text-gray-900 dark:text-white mb-1" data-i18n="cardText2udf">Metin &rarr; UDF</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed" data-i18n="cardText2udfDesc">Metin girerek dogrudan UDF belgesi olusturun</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Tools -->
+    <div id="pdf" class="mb-14">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-navy-500 to-navy-600 flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"/></svg>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white" data-i18n="pdfTitle">PDF Islemleri</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400" data-i18n="pdfDesc">Duzenleme, donusturme ve optimizasyon araclari</p>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div class="tool-card cursor-pointer bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-purple-200 dark:hover:border-purple-400 ring-2 ring-purple-100 dark:ring-purple-800" onclick="openTool('editpdf')">
+                <div class="w-11 h-11 rounded-xl bg-purple-50 flex items-center justify-center mb-3">
+                    <svg class="w-5.5 h-5.5 text-purple-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"/></svg>
+                </div>
+                <div class="flex items-center gap-2 mb-1">
+                    <h3 class="font-semibold text-gray-900 text-sm" data-i18n="cardEditPdf">PDF Duzenle</h3>
+                    <span class="text-[10px] font-bold bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded" data-i18n="badgeNew">YENI</span>
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400" data-i18n="cardEditPdfDesc">Metin, sekil ve cizim ekleyin, vurgulayin</p>
+            </div>
+            <div class="tool-card cursor-pointer bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-navy-200 dark:hover:border-navy-400" onclick="openTool('mergepdf')">
+                <div class="w-11 h-11 rounded-xl bg-navy-50 flex items-center justify-center mb-3">
+                    <svg class="w-5.5 h-5.5 text-navy-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                </div>
+                <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-1" data-i18n="cardMergePdf">PDF Birlestir</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400" data-i18n="cardMergePdfDesc">Birden fazla PDF'yi tek dosyada birlestirin</p>
+            </div>
+            <div class="tool-card cursor-pointer bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-navy-200 dark:hover:border-navy-400" onclick="openTool('splitpdf')">
+                <div class="w-11 h-11 rounded-xl bg-navy-50 flex items-center justify-center mb-3">
+                    <svg class="w-5.5 h-5.5 text-navy-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
+                </div>
+                <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-1" data-i18n="cardSplitPdf">PDF Bol</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400" data-i18n="cardSplitPdfDesc">PDF sayfalarini ayri dosyalara ayirin</p>
+            </div>
+            <div class="tool-card cursor-pointer bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-navy-200 dark:hover:border-navy-400" onclick="openTool('compresspdf')">
+                <div class="w-11 h-11 rounded-xl bg-navy-50 flex items-center justify-center mb-3">
+                    <svg class="w-5.5 h-5.5 text-navy-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25"/></svg>
+                </div>
+                <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-1" data-i18n="cardCompressPdf">PDF Sikistir</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400" data-i18n="cardCompressPdfDesc">Dosya boyutunu kaliteyi koruyarak kucultun</p>
+            </div>
+            <div class="tool-card cursor-pointer bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-navy-200 dark:hover:border-navy-400" onclick="openTool('rotatepdf')">
+                <div class="w-11 h-11 rounded-xl bg-navy-50 flex items-center justify-center mb-3">
+                    <svg class="w-5.5 h-5.5 text-navy-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182"/></svg>
+                </div>
+                <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-1" data-i18n="cardRotatePdf">PDF Dondur</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400" data-i18n="cardRotatePdfDesc">Sayfalari 90, 180 veya 270 derece dondurun</p>
+            </div>
+            <div class="tool-card cursor-pointer bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-navy-200 dark:hover:border-navy-400" onclick="openTool('img2pdf')">
+                <div class="w-11 h-11 rounded-xl bg-navy-50 flex items-center justify-center mb-3">
+                    <svg class="w-5.5 h-5.5 text-navy-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z"/></svg>
+                </div>
+                <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-1" data-i18n="cardImg2pdf">Gorsel &rarr; PDF</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400" data-i18n="cardImg2pdfDesc">JPG, PNG gorsellerini PDF'ye donusturun</p>
+            </div>
+            <div class="tool-card cursor-pointer bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-navy-200 dark:hover:border-navy-400" onclick="openTool('pdf2img')">
+                <div class="w-11 h-11 rounded-xl bg-navy-50 flex items-center justify-center mb-3">
+                    <svg class="w-5.5 h-5.5 text-navy-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/><path d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"/></svg>
+                </div>
+                <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-1" data-i18n="cardPdf2img">PDF &rarr; Gorsel</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400" data-i18n="cardPdf2imgDesc">PDF sayfalarini PNG/JPG olarak kaydedin</p>
+            </div>
+            <div class="tool-card cursor-pointer bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-navy-200 dark:hover:border-navy-400" onclick="openTool('watermark')">
+                <div class="w-11 h-11 rounded-xl bg-navy-50 flex items-center justify-center mb-3">
+                    <svg class="w-5.5 h-5.5 text-navy-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42"/></svg>
+                </div>
+                <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-1" data-i18n="cardWatermark">Filigran Ekle</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400" data-i18n="cardWatermarkDesc">PDF'ye metin veya gorsel filigran ekleyin</p>
+            </div>
+            <div class="tool-card cursor-pointer bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-navy-200 dark:hover:border-navy-400" onclick="openTool('pagenums')">
+                <div class="w-11 h-11 rounded-xl bg-navy-50 flex items-center justify-center mb-3">
+                    <svg class="w-5.5 h-5.5 text-navy-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5l-3.9 19.5m-2.1-19.5l-3.9 19.5"/></svg>
+                </div>
+                <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-1" data-i18n="cardPageNums">Sayfa Numarasi</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400" data-i18n="cardPageNumsDesc">PDF sayfalarina numara ekleyin</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features bar -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-10">
+        <div class="text-center p-5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+            <div class="text-2xl mb-2">&#128274;</div>
+            <div class="font-semibold text-sm text-gray-900 dark:text-white" data-i18n="featSecure">Guvenli</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1" data-i18n="featSecureDesc">Dosyalar tarayicinizda kalir</div>
+        </div>
+        <div class="text-center p-5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+            <div class="text-2xl mb-2">&#9889;</div>
+            <div class="font-semibold text-sm text-gray-900 dark:text-white" data-i18n="featFast">Hizli</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1" data-i18n="featFastDesc">Aninda islem</div>
+        </div>
+        <div class="text-center p-5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+            <div class="text-2xl mb-2">&#128241;</div>
+            <div class="font-semibold text-sm text-gray-900 dark:text-white" data-i18n="featMobile">Mobil Uyumlu</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1" data-i18n="featMobileDesc">Her cihazda calisir</div>
+        </div>
+        <div class="text-center p-5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+            <div class="text-2xl mb-2">&#8734;</div>
+            <div class="font-semibold text-sm text-gray-900 dark:text-white" data-i18n="featUnlimited">Sinirsiz</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1" data-i18n="featUnlimitedDesc">Ucretsiz, kayit gereksiz</div>
+        </div>
+    </div>
+</section>
+
+<!-- TOOL VIEW (hidden by default) -->
+<section id="toolSection" class="hidden max-w-5xl mx-auto px-4 sm:px-6 py-10 fade-in">
+    <button onclick="showHome()" class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-navy-600 dark:hover:text-navy-400 transition mb-6">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+        <span data-i18n="backToTools">Tum Araclara Don</span>
+    </button>
+    <div id="toolHeader" class="mb-8">
+        <h2 id="toolTitle" class="text-3xl font-bold text-gray-900 dark:text-white"></h2>
+        <p id="toolDesc" class="text-gray-500 dark:text-gray-400 mt-2"></p>
+    </div>
+    <div id="toolBody" class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 sm:p-8"></div>
+    <div id="toolResult" class="hidden mt-6 fade-in">
+        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 text-center">
+            <svg class="w-12 h-12 text-emerald-500 mx-auto mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <h3 class="text-lg font-bold text-emerald-800 mb-1" data-i18n="processComplete">Islem Tamamlandi!</h3>
+            <p id="resultInfo" class="text-sm text-emerald-600 mb-4"></p>
+            <button id="downloadBtn" class="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition shadow-sm">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12M12 16.5V3"/></svg>
+                <span data-i18n="downloadFile">Dosyayi Indir</span>
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="border-t border-gray-200 dark:border-gray-800 mt-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-500 dark:text-gray-400">
+        <span data-i18n="footer">&copy; 2026 DocForge &mdash; Tum islemler tarayicinizda gerceklesir.</span>
+    </div>
+</footer>
+
+<!-- TOAST -->
+<div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 translate-y-24 opacity-0 transition-all duration-300 px-5 py-3 rounded-xl bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium shadow-xl z-50"></div>
+
+<script>
+// =============================================
+// [M-5] Encapsulate globals into a single namespace
+// =============================================
+window.DocForge = {
+    convMode: 'text',
+    rotDeg: 90,
+    pnPos: 'center',
+    edPdfBuf: null,
+    edPdfName: '',
+    edPdf: null,
+    edPageNum: 1,
+    edTool: 'edittext',
+    edAnnotations: {},
+    edTextEdits: {},
+    edOrigTexts: {},
+    edCurrentPath: null,
+    edIsDrawing: false,
+    edCurrentShape: null,
+    edScale: 1,
+    edBlocks: {},
+};
+var DF = window.DocForge;
+
+// =============================================
+// i18n - Internationalization
+// =============================================
+var _currentLang = localStorage.getItem('lang') || 'tr';
+
+var i18n = {
+    tr: {
+        // Page title
+        pageTitle: 'DocForge - PDF & UDF Araclari',
+        // Nav
+        navHome: 'Ana Sayfa',
+        // Hero
+        heroTitle: 'Tum Belge Araclariniz<br><span class="bg-gradient-to-r from-brand-400 to-amber-400 bg-clip-text text-transparent">Tek Bir Yerde</span>',
+        heroDesc: 'PDF duzenleme, donusturme, birlestirme ve UYAP UDF islemleri. Tamamen tarayicinizda, ucretsiz ve guvenli.',
+        heroNoUpload: 'Sunucuya yukleme yok',
+        heroFree: 'Tamamen ucretsiz',
+        heroUnlimited: 'Sinirsiz kullanim',
+        // UYAP section
+        uyapTitle: 'UYAP / UDF Araclari',
+        uyapDesc: 'Ulusal Yargi Agi Bilisim Sistemi dosya islemleri',
+        // PDF section
+        pdfTitle: 'PDF Islemleri',
+        pdfDesc: 'Duzenleme, donusturme ve optimizasyon araclari',
+        // Tool cards
+        cardPdf2udf: 'PDF \u2192 UDF',
+        cardPdf2udfDesc: 'PDF dosyalarini UYAP editorune uyumlu UDF formatina donusturun',
+        cardUdf2pdf: 'UDF \u2192 PDF',
+        cardUdf2pdfDesc: 'UDF dosyalarini PDF formatina geri donusturun',
+        cardText2udf: 'Metin \u2192 UDF',
+        cardText2udfDesc: 'Metin girerek dogrudan UDF belgesi olusturun',
+        cardEditPdf: 'PDF Duzenle',
+        cardEditPdfDesc: 'Metin, sekil ve cizim ekleyin, vurgulayin',
+        cardMergePdf: 'PDF Birlestir',
+        cardMergePdfDesc: 'Birden fazla PDF\'yi tek dosyada birlestirin',
+        cardSplitPdf: 'PDF Bol',
+        cardSplitPdfDesc: 'PDF sayfalarini ayri dosyalara ayirin',
+        cardCompressPdf: 'PDF Sikistir',
+        cardCompressPdfDesc: 'Dosya boyutunu kaliteyi koruyarak kucultun',
+        cardRotatePdf: 'PDF Dondur',
+        cardRotatePdfDesc: 'Sayfalari 90, 180 veya 270 derece dondurun',
+        cardImg2pdf: 'Gorsel \u2192 PDF',
+        cardImg2pdfDesc: 'JPG, PNG gorsellerini PDF\'ye donusturun',
+        cardPdf2img: 'PDF \u2192 Gorsel',
+        cardPdf2imgDesc: 'PDF sayfalarini PNG/JPG olarak kaydedin',
+        cardWatermark: 'Filigran Ekle',
+        cardWatermarkDesc: 'PDF\'ye metin veya gorsel filigran ekleyin',
+        cardPageNums: 'Sayfa Numarasi',
+        cardPageNumsDesc: 'PDF sayfalarina numara ekleyin',
+        badgeNew: 'YENI',
+        // Features
+        featSecure: 'Guvenli',
+        featSecureDesc: 'Dosyalar tarayicinizda kalir',
+        featFast: 'Hizli',
+        featFastDesc: 'Aninda islem',
+        featMobile: 'Mobil Uyumlu',
+        featMobileDesc: 'Her cihazda calisir',
+        featUnlimited: 'Sinirsiz',
+        featUnlimitedDesc: 'Ucretsiz, kayit gereksiz',
+        // Tool view
+        backToTools: 'Tum Araclara Don',
+        processComplete: 'Islem Tamamlandi!',
+        downloadFile: 'Dosyayi Indir',
+        // Footer
+        footer: '\u00a9 2026 DocForge \u2014 Tum islemler tarayicinizda gerceklesir.',
+        // Upload zone
+        dragDrop: 'Dosyanizi surukleyip birakin',
+        orClick: 'veya tiklayin',
+        // Tool titles & descriptions (openTool)
+        toolEditPdfTitle: 'PDF Duzenle',
+        toolEditPdfDesc: 'PDF uzerine metin, sekil, cizim ekleyin ve vurgulama yapin.',
+        toolPdf2udfTitle: 'PDF \u2192 UDF Donusturucu',
+        toolPdf2udfDesc: 'PDF dosyalarini UYAP editorune uyumlu UDF formatina donusturun.',
+        toolUdf2pdfTitle: 'UDF \u2192 PDF Donusturucu',
+        toolUdf2pdfDesc: 'UYAP UDF dosyalarini PDF formatina geri donusturun.',
+        toolText2udfTitle: 'Metin \u2192 UDF Olusturucu',
+        toolText2udfDesc: 'Metin girerek dogrudan UYAP uyumlu UDF belgesi olusturun.',
+        toolMergePdfTitle: 'PDF Birlestir',
+        toolMergePdfDesc: 'Birden fazla PDF dosyasini tek bir dosyada birlestirin.',
+        toolSplitPdfTitle: 'PDF Bol',
+        toolSplitPdfDesc: 'PDF dosyasini sayfa sayfa ayri dosyalara bolun.',
+        toolCompressPdfTitle: 'PDF Sikistir',
+        toolCompressPdfDesc: 'PDF dosya boyutunu kucultun.',
+        toolRotatePdfTitle: 'PDF Dondur',
+        toolRotatePdfDesc: 'PDF sayfalarini istediginiz yone dondurun.',
+        toolImg2pdfTitle: 'Gorsel \u2192 PDF',
+        toolImg2pdfDesc: 'JPG, PNG gorsellerini PDF dosyasina donusturun.',
+        toolPdf2imgTitle: 'PDF \u2192 Gorsel',
+        toolPdf2imgDesc: 'PDF sayfalarini PNG gorsel olarak kaydedin.',
+        toolWatermarkTitle: 'Filigran Ekle',
+        toolWatermarkDesc: 'PDF dosyasina metin filigrani ekleyin.',
+        toolPageNumsTitle: 'Sayfa Numarasi Ekle',
+        toolPageNumsDesc: 'PDF sayfalarina otomatik numara ekleyin.',
+        // Buttons & labels
+        btnConvertToUdf: 'UDF\'ye Donustur',
+        btnConvertToPdf: 'PDF\'ye Donustur',
+        btnCreateUdf: 'UDF Olustur',
+        btnMerge: 'Birlestir',
+        btnSplitPages: 'Sayfalari Bol (ZIP)',
+        btnCompress: 'Sikistir',
+        btnRotate: 'Dondur',
+        btnCreatePdf: 'PDF Olustur',
+        btnConvertToImages: 'Gorsellere Donustur (ZIP)',
+        btnAddWatermark: 'Filigran Ekle',
+        btnAddNumbers: 'Numara Ekle',
+        btnDownloadEditedPdf: 'Duzenlenmis PDF\'yi Indir',
+        // Mode buttons
+        modeText: 'Metin Modu',
+        modeVisual: 'Gorsel (HD) Modu',
+        // Upload labels
+        labelSelectPdf: 'PDF dosyasi secin veya tiklayin',
+        labelSelectUdf: 'UDF dosyasi secin',
+        labelSelectMultiPdf: 'Birden fazla PDF secin',
+        labelSelectImages: 'Gorsel dosyalari secin (birden fazla)',
+        labelSelectEditPdf: 'Duzenlemek istediginiz PDF dosyasini secin',
+        // Text2UDF placeholder
+        text2udfPlaceholder: 'UDF\'ye donusturmek istediginiz metni buraya yazin...',
+        // Watermark
+        labelWatermarkText: 'Filigran Metni',
+        labelSize: 'Boyut',
+        labelOpacity: 'Opaklik',
+        // Compress
+        labelQuality: 'Kalite',
+        labelSmallSize: 'Dusuk boyut',
+        labelHighQuality: 'Yuksek kalite',
+        // Rotate
+        rot90: '90 Saat Yonu',
+        rot180: '180',
+        rot270: '270 (Ters)',
+        // Page numbers
+        posLeft: 'Sol Alt',
+        posCenter: 'Orta Alt',
+        posRight: 'Sag Alt',
+        // Editor toolbar
+        edEdit: 'Duzenle',
+        edSelect: 'Sec',
+        edText: 'Metin',
+        edDraw: 'Cizim',
+        edHighlight: 'Vurgula',
+        edBox: 'Kutu',
+        edColor: 'Renk',
+        edThickness: 'Kalinlik',
+        edFontSize: 'Yazi',
+        edUndo: 'Geri',
+        edClear: 'Temizle',
+        edPrev: '\u2190 Onceki',
+        edNext: 'Sonraki \u2192',
+        edPage: 'Sayfa',
+        // Progress / status messages
+        converting: 'Donusturuluyor...',
+        extractingText: 'Metin cikariliyor...',
+        switchingVisual: 'Gorsel moda geciliyor...',
+        renderingPages: 'Sayfalar render ediliyor...',
+        creatingZip: 'ZIP olusturuluyor...',
+        completed: 'Tamamlandi!',
+        readingUdf: 'UDF okunuyor...',
+        creatingPdf: 'PDF olusturuluyor...',
+        merging: 'Birlestiriliyor...',
+        processing: 'isleniyor...',
+        splitting: 'Bolunuyor...',
+        compressing: 'Sikistiriliyor...',
+        readingPdf: 'PDF okunuyor...',
+        rotating: 'Donduruluyor...',
+        creatingFile: 'Olusturuluyor...',
+        adding: 'Ekleniyor...',
+        savingPdf: 'PDF olusturuluyor...',
+        // Toast / error messages
+        toastFileTooLarge: 'Dosya boyutu cok buyuk (maks. 100 MB)',
+        toastFileNameTooLarge: ' dosyasi cok buyuk (maks. 100 MB)',
+        toastInvalidPdf: 'Gecersiz PDF dosyasi',
+        toastNoTextFallback: 'Metin bulunamadi - Gorsel moda gecildi',
+        toastError: 'Islem sirasinda bir hata olustu. Lutfen tekrar deneyin.',
+        toastInvalidUdf: 'Gecersiz UDF dosyasi',
+        toastPdfLoadFail: 'PDF yuklenemedi. Lutfen gecerli bir PDF dosyasi secin.',
+        toastPdfSaved: 'PDF kaydedildi!',
+        toastFontFail: 'Font indirilemedi',
+        toastZipTooLarge: 'ZIP icerik boyutu cok buyuk (maks. 500 MB)',
+        toastInvalidXml: 'Gecersiz XML formati',
+        // Result messages
+        resultConverted: '\u2192',
+        resultMerged: ' PDF birlestirildi',
+        resultPagesSplit: ' sayfa ayrildi',
+        resultReduced: ' kuculdu',
+        resultRotated: ' derece donduruldu',
+        resultImages: ' gorsel \u2192 PDF',
+        resultPagesImg: ' sayfa \u2192 PNG',
+        resultWatermarkAdded: 'Filigran eklendi',
+        resultPageNumbers: ' sayfaya numara eklendi',
+        resultTextToUdf: 'Metin \u2192 belge.udf',
+        // Multi file info
+        filesLabel: ' dosya: ',
+        pageLabel: 'Sayfa ',
+    },
+    en: {
+        // Page title
+        pageTitle: 'DocForge - PDF & UDF Tools',
+        // Nav
+        navHome: 'Home',
+        // Hero
+        heroTitle: 'All Your Document Tools<br><span class="bg-gradient-to-r from-brand-400 to-amber-400 bg-clip-text text-transparent">In One Place</span>',
+        heroDesc: 'PDF editing, converting, merging and UYAP UDF operations. Completely in your browser, free and secure.',
+        heroNoUpload: 'No server upload',
+        heroFree: 'Completely free',
+        heroUnlimited: 'Unlimited usage',
+        // UYAP section
+        uyapTitle: 'UYAP / UDF Tools',
+        uyapDesc: 'National Judiciary Informatics System file operations',
+        // PDF section
+        pdfTitle: 'PDF Tools',
+        pdfDesc: 'Editing, converting and optimization tools',
+        // Tool cards
+        cardPdf2udf: 'PDF \u2192 UDF',
+        cardPdf2udfDesc: 'Convert PDF files to UDF format compatible with UYAP editor',
+        cardUdf2pdf: 'UDF \u2192 PDF',
+        cardUdf2pdfDesc: 'Convert UDF files back to PDF format',
+        cardText2udf: 'Text \u2192 UDF',
+        cardText2udfDesc: 'Create UDF documents directly by entering text',
+        cardEditPdf: 'Edit PDF',
+        cardEditPdfDesc: 'Add text, shapes, drawings and highlights',
+        cardMergePdf: 'Merge PDF',
+        cardMergePdfDesc: 'Combine multiple PDFs into a single file',
+        cardSplitPdf: 'Split PDF',
+        cardSplitPdfDesc: 'Split PDF pages into separate files',
+        cardCompressPdf: 'Compress PDF',
+        cardCompressPdfDesc: 'Reduce file size while preserving quality',
+        cardRotatePdf: 'Rotate PDF',
+        cardRotatePdfDesc: 'Rotate pages by 90, 180 or 270 degrees',
+        cardImg2pdf: 'Image \u2192 PDF',
+        cardImg2pdfDesc: 'Convert JPG, PNG images to PDF',
+        cardPdf2img: 'PDF \u2192 Image',
+        cardPdf2imgDesc: 'Save PDF pages as PNG/JPG images',
+        cardWatermark: 'Add Watermark',
+        cardWatermarkDesc: 'Add text or image watermark to PDF',
+        cardPageNums: 'Page Numbers',
+        cardPageNumsDesc: 'Add page numbers to PDF',
+        badgeNew: 'NEW',
+        // Features
+        featSecure: 'Secure',
+        featSecureDesc: 'Files stay in your browser',
+        featFast: 'Fast',
+        featFastDesc: 'Instant processing',
+        featMobile: 'Mobile Friendly',
+        featMobileDesc: 'Works on any device',
+        featUnlimited: 'Unlimited',
+        featUnlimitedDesc: 'Free, no registration',
+        // Tool view
+        backToTools: 'Back to All Tools',
+        processComplete: 'Process Complete!',
+        downloadFile: 'Download File',
+        // Footer
+        footer: '\u00a9 2026 DocForge \u2014 All operations happen in your browser.',
+        // Upload zone
+        dragDrop: 'Drag and drop your file',
+        orClick: 'or click to select',
+        // Tool titles & descriptions (openTool)
+        toolEditPdfTitle: 'Edit PDF',
+        toolEditPdfDesc: 'Add text, shapes, drawings and highlights to your PDF.',
+        toolPdf2udfTitle: 'PDF \u2192 UDF Converter',
+        toolPdf2udfDesc: 'Convert PDF files to UDF format compatible with UYAP editor.',
+        toolUdf2pdfTitle: 'UDF \u2192 PDF Converter',
+        toolUdf2pdfDesc: 'Convert UYAP UDF files back to PDF format.',
+        toolText2udfTitle: 'Text \u2192 UDF Creator',
+        toolText2udfDesc: 'Create UYAP compatible UDF documents by entering text.',
+        toolMergePdfTitle: 'Merge PDF',
+        toolMergePdfDesc: 'Combine multiple PDF files into a single document.',
+        toolSplitPdfTitle: 'Split PDF',
+        toolSplitPdfDesc: 'Split a PDF file into separate pages.',
+        toolCompressPdfTitle: 'Compress PDF',
+        toolCompressPdfDesc: 'Reduce PDF file size.',
+        toolRotatePdfTitle: 'Rotate PDF',
+        toolRotatePdfDesc: 'Rotate PDF pages to your desired orientation.',
+        toolImg2pdfTitle: 'Image \u2192 PDF',
+        toolImg2pdfDesc: 'Convert JPG, PNG images to a PDF file.',
+        toolPdf2imgTitle: 'PDF \u2192 Image',
+        toolPdf2imgDesc: 'Save PDF pages as PNG images.',
+        toolWatermarkTitle: 'Add Watermark',
+        toolWatermarkDesc: 'Add a text watermark to your PDF file.',
+        toolPageNumsTitle: 'Add Page Numbers',
+        toolPageNumsDesc: 'Automatically add page numbers to PDF pages.',
+        // Buttons & labels
+        btnConvertToUdf: 'Convert to UDF',
+        btnConvertToPdf: 'Convert to PDF',
+        btnCreateUdf: 'Create UDF',
+        btnMerge: 'Merge',
+        btnSplitPages: 'Split Pages (ZIP)',
+        btnCompress: 'Compress',
+        btnRotate: 'Rotate',
+        btnCreatePdf: 'Create PDF',
+        btnConvertToImages: 'Convert to Images (ZIP)',
+        btnAddWatermark: 'Add Watermark',
+        btnAddNumbers: 'Add Numbers',
+        btnDownloadEditedPdf: 'Download Edited PDF',
+        // Mode buttons
+        modeText: 'Text Mode',
+        modeVisual: 'Visual (HD) Mode',
+        // Upload labels
+        labelSelectPdf: 'Select a PDF file or click',
+        labelSelectUdf: 'Select a UDF file',
+        labelSelectMultiPdf: 'Select multiple PDFs',
+        labelSelectImages: 'Select image files (multiple)',
+        labelSelectEditPdf: 'Select the PDF you want to edit',
+        // Text2UDF placeholder
+        text2udfPlaceholder: 'Type the text you want to convert to UDF here...',
+        // Watermark
+        labelWatermarkText: 'Watermark Text',
+        labelSize: 'Size',
+        labelOpacity: 'Opacity',
+        // Compress
+        labelQuality: 'Quality',
+        labelSmallSize: 'Small size',
+        labelHighQuality: 'High quality',
+        // Rotate
+        rot90: '90 Clockwise',
+        rot180: '180',
+        rot270: '270 (Counter)',
+        // Page numbers
+        posLeft: 'Bottom Left',
+        posCenter: 'Bottom Center',
+        posRight: 'Bottom Right',
+        // Editor toolbar
+        edEdit: 'Edit',
+        edSelect: 'Select',
+        edText: 'Text',
+        edDraw: 'Draw',
+        edHighlight: 'Highlight',
+        edBox: 'Box',
+        edColor: 'Color',
+        edThickness: 'Thickness',
+        edFontSize: 'Font Size',
+        edUndo: 'Undo',
+        edClear: 'Clear',
+        edPrev: '\u2190 Previous',
+        edNext: 'Next \u2192',
+        edPage: 'Page',
+        // Progress / status messages
+        converting: 'Converting...',
+        extractingText: 'Extracting text...',
+        switchingVisual: 'Switching to visual mode...',
+        renderingPages: 'Rendering pages...',
+        creatingZip: 'Creating ZIP...',
+        completed: 'Completed!',
+        readingUdf: 'Reading UDF...',
+        creatingPdf: 'Creating PDF...',
+        merging: 'Merging...',
+        processing: 'processing...',
+        splitting: 'Splitting...',
+        compressing: 'Compressing...',
+        readingPdf: 'Reading PDF...',
+        rotating: 'Rotating...',
+        creatingFile: 'Creating...',
+        adding: 'Adding...',
+        savingPdf: 'Creating PDF...',
+        // Toast / error messages
+        toastFileTooLarge: 'File size is too large (max. 100 MB)',
+        toastFileNameTooLarge: ' is too large (max. 100 MB)',
+        toastInvalidPdf: 'Invalid PDF file',
+        toastNoTextFallback: 'No text found - Switched to visual mode',
+        toastError: 'An error occurred. Please try again.',
+        toastInvalidUdf: 'Invalid UDF file',
+        toastPdfLoadFail: 'Could not load PDF. Please select a valid PDF file.',
+        toastPdfSaved: 'PDF saved!',
+        toastFontFail: 'Could not download font',
+        toastZipTooLarge: 'ZIP content too large (max. 500 MB)',
+        toastInvalidXml: 'Invalid XML format',
+        // Result messages
+        resultConverted: '\u2192',
+        resultMerged: ' PDFs merged',
+        resultPagesSplit: ' pages split',
+        resultReduced: ' reduced',
+        resultRotated: ' degrees rotated',
+        resultImages: ' images \u2192 PDF',
+        resultPagesImg: ' pages \u2192 PNG',
+        resultWatermarkAdded: 'Watermark added',
+        resultPageNumbers: ' pages numbered',
+        resultTextToUdf: 'Text \u2192 document.udf',
+        // Multi file info
+        filesLabel: ' files: ',
+        pageLabel: 'Page ',
+    }
+};
+
+function t(key) {
+    return (i18n[_currentLang] && i18n[_currentLang][key]) || (i18n['tr'][key]) || key;
+}
+
+function applyLang() {
+    // Update all data-i18n elements (textContent)
+    document.querySelectorAll('[data-i18n]').forEach(function(el) {
+        var key = el.getAttribute('data-i18n');
+        if (i18n[_currentLang] && i18n[_currentLang][key] !== undefined) {
+            el.textContent = i18n[_currentLang][key];
+        }
+    });
+    // Update all data-i18n-html elements (innerHTML, for hero title with <br>/<span>)
+    document.querySelectorAll('[data-i18n-html]').forEach(function(el) {
+        var key = el.getAttribute('data-i18n-html');
+        if (i18n[_currentLang] && i18n[_currentLang][key] !== undefined) {
+            el.innerHTML = i18n[_currentLang][key];
+        }
+    });
+    // Update page title
+    document.getElementById('pageTitle').textContent = t('pageTitle');
+    // Update html lang attribute
+    document.getElementById('htmlRoot').setAttribute('lang', _currentLang === 'tr' ? 'tr' : 'en');
+    // Update toggle button display
+    var btn = document.getElementById('langToggle');
+    if (btn) {
+        if (_currentLang === 'tr') {
+            btn.innerHTML = 'TR | <span class="opacity-50">EN</span>';
+        } else {
+            btn.innerHTML = '<span class="opacity-50">TR</span> | EN';
+        }
+    }
+}
+
+function toggleLang() {
+    _currentLang = _currentLang === 'tr' ? 'en' : 'tr';
+    localStorage.setItem('lang', _currentLang);
+    applyLang();
+    // If a tool is currently open, re-open it to rebuild with new language
+    var ts = document.getElementById('toolSection');
+    if (!ts.classList.contains('hidden')) {
+        // Find which tool is open by checking the title
+        var currentTitle = document.getElementById('toolTitle').textContent;
+        var toolKeys = Object.keys(_toolMap || {});
+        // We need to re-render the tool body, so trigger rebuild
+        if (DF._currentToolId) {
+            openTool(DF._currentToolId);
+        }
+    }
+}
+
+// =============================================
+// [H-5] Escape ]]> sequences in CDATA content
+// =============================================
+function escapeCDATA(str) {
+    return str.replace(/\]\]>/g, ']]]]><![CDATA[>');
+}
+
+// =============================================
+// [H-3] File size limit constant (100 MB)
+// =============================================
+var MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
+
+// [M-2] ZIP decompressed size limit (500 MB)
+var MAX_ZIP_DECOMPRESSED_SIZE = 500 * 1024 * 1024; // 500 MB
+
+function checkFileSize(file) {
+    if (file.size > MAX_FILE_SIZE) {
+        toast(t('toastFileTooLarge'));
+        return false;
+    }
+    return true;
+}
+
+function checkFileSizes(files) {
+    for (var i = 0; i < files.length; i++) {
+        if (files[i].size > MAX_FILE_SIZE) {
+            toast(files[i].name + t('toastFileNameTooLarge'));
+            return false;
+        }
+    }
+    return true;
+}
+
+// =============================================
+// [M-4] Magic byte validation
+// =============================================
+function validatePdfMagic(buf) {
+    var arr = new Uint8Array(buf, 0, 5);
+    // Check for %PDF-
+    return arr[0] === 0x25 && arr[1] === 0x50 && arr[2] === 0x44 && arr[3] === 0x46 && arr[4] === 0x2D;
+}
+
+function validateZipMagic(buf) {
+    var arr = new Uint8Array(buf, 0, 2);
+    // Check for PK (0x50 0x4B)
+    return arr[0] === 0x50 && arr[1] === 0x4B;
+}
+
+// =============================================
+// [M-1] Basic base64 validation
+// =============================================
+function isValidBase64(str) {
+    if (!str || typeof str !== 'string' || str.length === 0) return false;
+    // Check for valid base64 characters and reasonable length
+    return /^[A-Za-z0-9+/\n\r]+=*$/.test(str.replace(/\s/g, ''));
+}
+
+// =============================================
+// [H-3] HTML escaping for template literal parameters
+// =============================================
+function escapeHTML(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+}
+
+// =============================================
+// PDF.js worker
+// =============================================
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// =============================================
+// State - [M-3] resultBlob managed with proactive cleanup
+// =============================================
+var resultBlob = null;
+var resultFilename = '';
+var _lastObjectURL = null;
+
+// =============================================
+// Navigation
+// =============================================
+function showHome() {
+    document.getElementById('homeSection').classList.remove('hidden');
+    document.getElementById('hero').classList.remove('hidden');
+    document.getElementById('toolSection').classList.add('hidden');
+    // [M-3] Proactively clear resultBlob when navigating away
+    resultBlob = null;
+    if (_lastObjectURL) {
+        URL.revokeObjectURL(_lastObjectURL);
+        _lastObjectURL = null;
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function openTool(id) {
+    document.getElementById('homeSection').classList.add('hidden');
+    document.getElementById('hero').classList.add('hidden');
+    var ts = document.getElementById('toolSection');
+    ts.classList.remove('hidden');
+    ts.classList.remove('fade-in');
+    void ts.offsetWidth;
+    ts.classList.add('fade-in');
+    document.getElementById('toolResult').classList.add('hidden');
+    // [M-3] Proactively clear resultBlob when opening a new tool
+    resultBlob = null;
+    if (_lastObjectURL) {
+        URL.revokeObjectURL(_lastObjectURL);
+        _lastObjectURL = null;
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    DF._currentToolId = id;
+    var tools = {
+        editpdf: { titleKey: 'toolEditPdfTitle', descKey: 'toolEditPdfDesc', build: buildEditPdf },
+        pdf2udf: { titleKey: 'toolPdf2udfTitle', descKey: 'toolPdf2udfDesc', build: buildPdf2Udf },
+        udf2pdf: { titleKey: 'toolUdf2pdfTitle', descKey: 'toolUdf2pdfDesc', build: buildUdf2Pdf },
+        text2udf: { titleKey: 'toolText2udfTitle', descKey: 'toolText2udfDesc', build: buildText2Udf },
+        mergepdf: { titleKey: 'toolMergePdfTitle', descKey: 'toolMergePdfDesc', build: buildMergePdf },
+        splitpdf: { titleKey: 'toolSplitPdfTitle', descKey: 'toolSplitPdfDesc', build: buildSplitPdf },
+        compresspdf: { titleKey: 'toolCompressPdfTitle', descKey: 'toolCompressPdfDesc', build: buildCompressPdf },
+        rotatepdf: { titleKey: 'toolRotatePdfTitle', descKey: 'toolRotatePdfDesc', build: buildRotatePdf },
+        img2pdf: { titleKey: 'toolImg2pdfTitle', descKey: 'toolImg2pdfDesc', build: buildImg2Pdf },
+        pdf2img: { titleKey: 'toolPdf2imgTitle', descKey: 'toolPdf2imgDesc', build: buildPdf2Img },
+        watermark: { titleKey: 'toolWatermarkTitle', descKey: 'toolWatermarkDesc', build: buildWatermark },
+        pagenums: { titleKey: 'toolPageNumsTitle', descKey: 'toolPageNumsDesc', build: buildPageNums },
+    };
+
+    var tl = tools[id];
+    document.getElementById('toolTitle').textContent = t(tl.titleKey);
+    document.getElementById('toolDesc').textContent = t(tl.descKey);
+    tl.build(document.getElementById('toolBody'));
+}
+
+// =============================================
+// Helper: Upload zone HTML
+// [H-1] SECURITY NOTE: All parameters (inputId, accept, label, multi) are
+// internal string literals from our own code - never from user input.
+// The label parameter is escaped via escapeHTML() as an extra precaution.
+// =============================================
+function uploadZoneHTML(inputId, accept, label, multi) {
+    var safeLabel = escapeHTML(label);
+    return '\
+    <div class="upload-zone border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl p-10 text-center cursor-pointer hover:border-navy-400 hover:bg-navy-50/30 dark:hover:bg-navy-950/30 transition"\
+         onclick="document.getElementById(\'' + inputId + '\').click()"\
+         ondragover="event.preventDefault();this.classList.add(\'dragover\')"\
+         ondragleave="this.classList.remove(\'dragover\')"\
+         ondrop="event.preventDefault();this.classList.remove(\'dragover\');document.getElementById(\'' + inputId + '\').files=event.dataTransfer.files;document.getElementById(\'' + inputId + '\').dispatchEvent(new Event(\'change\'))">\
+        <svg class="w-10 h-10 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>\
+        <p class="font-semibold text-gray-700 dark:text-gray-200 mb-1">' + t('dragDrop') + '</p>\
+        <p class="text-sm text-gray-500">' + safeLabel + '</p>\
+        <input type="file" id="' + inputId + '" class="hidden" accept="' + accept + '" ' + (multi ? 'multiple' : '') + '>\
+    </div>\
+    <div id="' + inputId + '_info" class="hidden mt-4 flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-xl">\
+        <svg class="w-8 h-8 text-navy-500 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>\
+        <div class="flex-1 min-w-0"><div id="' + inputId + '_name" class="font-medium text-sm text-gray-900 dark:text-white truncate"></div><div id="' + inputId + '_size" class="text-xs text-gray-500 dark:text-gray-400"></div></div>\
+        <button onclick="clearInput(\'' + inputId + '\')" class="text-red-400 hover:text-red-600 p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button>\
+    </div>\
+    <div id="' + inputId + '_progress" class="hidden mt-4">\
+        <div class="h-1.5 bg-gray-200 rounded-full overflow-hidden"><div id="' + inputId + '_bar" class="progress-fill h-full bg-gradient-to-r from-navy-500 to-brand-500 rounded-full" style="width:0%"></div></div>\
+        <p id="' + inputId + '_ptext" class="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center"></p>\
+    </div>';
+}
+
+function actionBtnHTML(id, label) {
+    return '<button id="' + id + '" class="w-full mt-6 py-3.5 rounded-xl font-semibold text-white bg-gradient-to-r from-navy-600 to-navy-700 hover:from-navy-700 hover:to-navy-800 transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2" disabled>' + escapeHTML(label) + '</button>';
+}
+
+function clearInput(inputId) {
+    document.getElementById(inputId).value = '';
+    document.getElementById(inputId + '_info').classList.add('hidden');
+    var zone = document.getElementById(inputId).closest('.upload-zone') || document.getElementById(inputId).parentElement.previousElementSibling;
+    if (zone) zone.classList.remove('has-file');
+}
+
+function showFileInfo(inputId) {
+    var f = document.getElementById(inputId).files[0];
+    if (!f) return;
+    document.getElementById(inputId + '_name').textContent = f.name;
+    document.getElementById(inputId + '_size').textContent = fmtSize(f.size);
+    document.getElementById(inputId + '_info').classList.remove('hidden');
+}
+
+function showMultiFileInfo(inputId) {
+    var files = document.getElementById(inputId).files;
+    if (!files.length) return;
+    var names = Array.from(files).map(function(f) { return f.name; }).join(', ');
+    var totalSize = Array.from(files).reduce(function(s, f) { return s + f.size; }, 0);
+    document.getElementById(inputId + '_name').textContent = files.length + t('filesLabel') + names;
+    document.getElementById(inputId + '_size').textContent = fmtSize(totalSize);
+    document.getElementById(inputId + '_info').classList.remove('hidden');
+}
+
+function setProgress(inputId, pct, text) {
+    document.getElementById(inputId + '_progress').classList.remove('hidden');
+    document.getElementById(inputId + '_bar').style.width = pct + '%';
+    document.getElementById(inputId + '_ptext').textContent = text || '';
+}
+
+function showResult(info, blob, filename) {
+    // [M-3] Proactively clear previous resultBlob
+    resultBlob = null;
+    if (_lastObjectURL) {
+        URL.revokeObjectURL(_lastObjectURL);
+        _lastObjectURL = null;
+    }
+    resultBlob = blob; resultFilename = filename;
+    document.getElementById('resultInfo').textContent = info;
+    document.getElementById('toolResult').classList.remove('hidden');
+    document.getElementById('toolResult').classList.remove('fade-in');
+    void document.getElementById('toolResult').offsetWidth;
+    document.getElementById('toolResult').classList.add('fade-in');
+    document.getElementById('downloadBtn').onclick = function() { downloadBlob(blob, filename); };
+}
+
+function downloadBlob(blob, name) {
+    var a = document.createElement('a');
+    var url = URL.createObjectURL(blob);
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    // [M-3] Delay revokeObjectURL to allow download to start
+    _lastObjectURL = url;
+    setTimeout(function() {
+        URL.revokeObjectURL(url);
+        if (_lastObjectURL === url) _lastObjectURL = null;
+    }, 5000);
+}
+
+function fmtSize(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+    return (b / 1048576).toFixed(2) + ' MB';
+}
+
+function toast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.remove('translate-y-24','opacity-0');
+    setTimeout(function() { t.classList.add('translate-y-24','opacity-0'); }, 3000);
+}
+
+// =============================================
+// Dark mode
+// =============================================
+function toggleDark() {
+    document.documentElement.classList.toggle('dark');
+    localStorage.setItem('darkMode', document.documentElement.classList.contains('dark'));
+}
+// Restore dark mode preference
+if (localStorage.getItem('darkMode') === 'true') {
+    document.documentElement.classList.add('dark');
+}
+// Apply saved language preference on load
+applyLang();
+
+// =============================================
+// UYAP UDF FORMAT (matching real UYAP output)
+// [H-5] CDATA content is escaped to prevent ]]> injection
+// =============================================
+function buildUdfTemplate(contentStr, elementsStr) {
+    return '<?xml version="1.0" encoding="UTF-8" ?>\n' +
+        '<template format_id="1.8">\n' +
+        '<content><![CDATA[' + escapeCDATA(contentStr) + ']]></content>\n' +
+        '<properties><pageFormat mediaSizeName="1" leftMargin="70.87" rightMargin="56.69" topMargin="56.69" bottomMargin="56.69" paperOrientation="1" headerFOffset="20.0" footerFOffset="20.0" /></properties>\n' +
+        '<elements resolver="hvl-default">\n' +
+        elementsStr + '\n' +
+        '</elements>\n' +
+        '<styles><style name="default" description="Ge\u00e7erli" family="Dialog" size="12" bold="false" italic="false" foreground="-13421773" FONT_ATTRIBUTE_KEY="javax.swing.plaf.FontUIResource[family=Dialog,name=Dialog,style=plain,size=12]" /><style name="hvl-default" family="Times New Roman" size="12" description="G\u00f6vde" /></styles>\n' +
+        '</template>';
+}
+
+async function createUdfZip(xml) {
+    var zip = new JSZip();
+    zip.file('content.xml', xml, { compression: 'DEFLATE' });
+    return await zip.generateAsync({ type: 'blob' });
+}
+
+// PDF -> UDF Visual (renders PDF pages as images)
+async function pdfToUdfVisual(buf, scale) {
+    scale = scale || 2.0;
+    var pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    var chars = [], elems = [];
+    for (var i = 1; i <= pdf.numPages; i++) {
+        var page = await pdf.getPage(i);
+        var vp = page.getViewport({ scale: scale });
+        var c = document.createElement('canvas');
+        c.width = vp.width; c.height = vp.height;
+        await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+        var b64 = c.toDataURL('image/png').split(',')[1];
+        // [L-4] Clean up canvas memory
+        c.width = 0; c.height = 0;
+        var ppp = 72.0 / (96.0 * scale);
+        var w = (vp.width * ppp).toFixed(2), h = (vp.height * ppp).toFixed(2);
+        var off = chars.length;
+        chars.push('\uFFFC');
+        elems.push('<image imageData="' + b64 + '" startOffset="' + off + '" length="1" width="' + w + '" height="' + h + '" />');
+    }
+    return buildUdfTemplate(chars.join(''), elems.join('\n'));
+}
+
+// PDF -> UDF Text
+async function pdfToUdfTextMode(buf) {
+    var pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    var cp = [], ep = [];
+    var off = 0;
+    for (var i = 1; i <= pdf.numPages; i++) {
+        var page = await pdf.getPage(i);
+        var tc = await page.getTextContent();
+        var pt = '', ly = null;
+        for (var j = 0; j < tc.items.length; j++) {
+            var it = tc.items[j];
+            if (it.str === undefined) continue;
+            var y = Math.round(it.transform[5]);
+            if (ly !== null && Math.abs(y - ly) > 3) pt += '\n';
+            pt += it.str; ly = y;
+        }
+        pt = pt.trim();
+        if (pt) {
+            cp.push(pt);
+            ep.push('<paragraph Alignment="0" LeftIndent="0.0" RightIndent="0.0"><content startOffset="' + off + '" length="' + pt.length + '" /></paragraph>');
+            off += pt.length;
+        }
+        cp.push('\n');
+        ep.push('<paragraph Alignment="0" LeftIndent="0.0" RightIndent="0.0"><content startOffset="' + off + '" length="1" /></paragraph>');
+        off += 1;
+    }
+    var content = cp.join('');
+    var hasText = content.replace(/\n/g, '').trim().length > 0;
+    return { xml: buildUdfTemplate(content, ep.join('\n')), hasText: hasText };
+}
+
+// =============================================
+// TOOL BUILDERS
+// =============================================
+
+// --- PDF -> UDF ---
+function buildPdf2Udf(container) {
+    container.innerHTML =
+        '<div class="flex gap-3 mb-6">' +
+            '<button id="modeText" class="flex-1 py-2.5 rounded-xl border-2 border-navy-500 bg-navy-50 text-navy-700 font-semibold text-sm transition" onclick="setConvMode(\'text\')">' + t('modeText') + '</button>' +
+            '<button id="modeVisual" class="flex-1 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-semibold text-sm transition hover:border-gray-300" onclick="setConvMode(\'visual\')">' + t('modeVisual') + '</button>' +
+        '</div>' +
+        uploadZoneHTML('f_p2u', '.pdf', t('labelSelectPdf')) +
+        actionBtnHTML('btn_p2u', t('btnConvertToUdf'));
+    DF.convMode = 'text';
+    document.getElementById('f_p2u').onchange = function() {
+        var file = document.getElementById('f_p2u').files[0];
+        if (!file) return;
+        if (!checkFileSize(file)) { clearInput('f_p2u'); return; }
+        showFileInfo('f_p2u'); document.getElementById('btn_p2u').disabled = false;
+    };
+    document.getElementById('btn_p2u').onclick = async function() {
+        var file = document.getElementById('f_p2u').files[0]; if (!file) return;
+        var btn = document.getElementById('btn_p2u');
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> ' + t('converting');
+        try {
+            var buf = await file.arrayBuffer();
+            // [M-4] Validate PDF magic bytes
+            if (!validatePdfMagic(buf)) { toast(t('toastInvalidPdf')); btn.disabled = false; btn.innerHTML = t('btnConvertToUdf'); return; }
+            var xml;
+            if (DF.convMode === 'text') {
+                setProgress('f_p2u', 30, t('extractingText'));
+                var r = await pdfToUdfTextMode(buf.slice(0));
+                if (!r.hasText) {
+                    toast(t('toastNoTextFallback'));
+                    setProgress('f_p2u', 50, t('switchingVisual'));
+                    xml = await pdfToUdfVisual(buf.slice(0), 2.0);
+                } else { xml = r.xml; }
+            } else {
+                setProgress('f_p2u', 30, t('renderingPages'));
+                xml = await pdfToUdfVisual(buf.slice(0), 2.0);
+            }
+            setProgress('f_p2u', 90, t('creatingZip'));
+            var blob = await createUdfZip(xml);
+            var name = file.name.replace(/\.pdf$/i, '') + '.udf';
+            setProgress('f_p2u', 100, t('completed'));
+            showResult(file.name + ' \u2192 ' + name + ' (' + fmtSize(blob.size) + ')', blob, name);
+        } catch (e) {
+            // [M-6] Generic error to user, details in console
+            console.error('PDF->UDF conversion error:', e);
+            toast(t('toastError'));
+        }
+        btn.disabled = false; btn.innerHTML = t('btnConvertToUdf');
+    };
+}
+window.setConvMode = function(m) {
+    DF.convMode = m;
+    document.getElementById('modeText').className = m === 'text'
+        ? 'flex-1 py-2.5 rounded-xl border-2 border-navy-500 bg-navy-50 text-navy-700 font-semibold text-sm transition'
+        : 'flex-1 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-semibold text-sm transition hover:border-gray-300';
+    document.getElementById('modeVisual').className = m === 'visual'
+        ? 'flex-1 py-2.5 rounded-xl border-2 border-navy-500 bg-navy-50 text-navy-700 font-semibold text-sm transition'
+        : 'flex-1 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-semibold text-sm transition hover:border-gray-300';
+};
+
+// --- UDF -> PDF ---
+function buildUdf2Pdf(container) {
+    container.innerHTML = uploadZoneHTML('f_u2p', '.udf,.zip', t('labelSelectUdf')) + actionBtnHTML('btn_u2p', t('btnConvertToPdf'));
+    document.getElementById('f_u2p').onchange = function() {
+        var file = document.getElementById('f_u2p').files[0];
+        if (!file) return;
+        if (!checkFileSize(file)) { clearInput('f_u2p'); return; }
+        showFileInfo('f_u2p'); document.getElementById('btn_u2p').disabled = false;
+    };
+    document.getElementById('btn_u2p').onclick = async function() {
+        var file = document.getElementById('f_u2p').files[0]; if (!file) return;
+        var btn = document.getElementById('btn_u2p');
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> ' + t('converting');
+        try {
+            setProgress('f_u2p', 30, t('readingUdf'));
+            var buf = await file.arrayBuffer();
+            var xmlContent;
+            try {
+                // [M-4] Validate ZIP magic bytes
+                if (!validateZipMagic(buf)) throw new Error('Not a ZIP');
+                var z = await JSZip.loadAsync(buf);
+                // [M-2] Check decompressed size
+                var totalDecompressed = 0;
+                var zipEntries = [];
+                z.forEach(function(relativePath, zipEntry) { zipEntries.push(zipEntry); });
+                for (var zi = 0; zi < zipEntries.length; zi++) {
+                    var entry = zipEntries[zi];
+                    if (!entry.dir) {
+                        var entryData = await entry.async('arraybuffer');
+                        totalDecompressed += entryData.byteLength;
+                        if (totalDecompressed > MAX_ZIP_DECOMPRESSED_SIZE) {
+                            throw new Error(t('toastZipTooLarge'));
+                        }
+                    }
+                }
+                var cx = z.file('content.xml');
+                if (!cx) throw new Error('content.xml not found');
+                xmlContent = await cx.async('string');
+            }
+            catch (zipErr) {
+                // [L-3] Log errors in catch blocks
+                console.warn('ZIP parse failed, trying as raw XML:', zipErr);
+                xmlContent = new TextDecoder().decode(buf);
+                if (!xmlContent.includes('<template')) throw new Error(t('toastInvalidUdf'));
+            }
+            // [H-4] XML validation: reject DOCTYPE declarations
+            if (/<!DOCTYPE/i.test(xmlContent)) {
+                throw new Error(t('toastInvalidUdf'));
+            }
+            setProgress('f_u2p', 60, t('creatingPdf'));
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(xmlContent, 'text/xml');
+            // [H-4] Validate root element is <template>
+            var rootEl = doc.documentElement;
+            if (!rootEl || rootEl.tagName !== 'template') {
+                throw new Error(t('toastInvalidUdf'));
+            }
+            // Check for XML parse errors
+            var parseError = doc.querySelector('parsererror');
+            if (parseError) {
+                throw new Error(t('toastInvalidXml'));
+            }
+            var tmpl = doc.querySelector('template');
+            var cdata = tmpl.querySelector('content') ? tmpl.querySelector('content').textContent : '';
+            var runes = Array.from(cdata);
+            var jsPDFLib = window.jspdf;
+            var pdf = new jsPDFLib.jsPDF({ unit: 'pt', format: 'a4' });
+            var pw = pdf.internal.pageSize.getWidth(), ph = pdf.internal.pageSize.getHeight(), mg = 56.69, uw = pw - mg * 2;
+            var y = mg + 20, first = true;
+            var elems = tmpl.querySelector('elements');
+            if (elems) {
+                var children = elems.children;
+                for (var ci = 0; ci < children.length; ci++) {
+                    var ch = children[ci];
+                    if (ch.tagName === 'image') {
+                        var imgData = ch.getAttribute('imageData');
+                        // [M-1] Validate base64 image data
+                        if (!imgData || !isValidBase64(imgData)) {
+                            console.warn('Skipping invalid image data at element', ci);
+                            continue;
+                        }
+                        var iw = parseFloat(ch.getAttribute('width') || '400'), ih = parseFloat(ch.getAttribute('height') || '500');
+                        if (!first) { pdf.addPage(); y = mg + 20; }
+                        var dw = Math.min(iw, uw), dh = dw * (ih / iw);
+                        if (dh > ph - mg * 2) { dh = ph - mg * 2; dw = dh * (iw / ih); }
+                        var x = (pw - dw) / 2;
+                        try { pdf.addImage('data:image/png;base64,' + imgData, 'PNG', x, y, dw, dh); }
+                        catch (imgErr) { console.error('Failed to add image:', imgErr); }
+                        first = false;
+                    } else if (ch.tagName === 'paragraph') {
+                        var innerChildren = ch.children;
+                        for (var ic = 0; ic < innerChildren.length; ic++) {
+                            var inner = innerChildren[ic];
+                            if (inner.tagName === 'content') {
+                                var so = parseInt(inner.getAttribute('startOffset') || '0');
+                                var ln = parseInt(inner.getAttribute('length') || '0');
+                                var text = runes.slice(so, so + ln).join('').replace(/\u200B/g, '');
+                                if (!text.trim()) { y += 14; continue; }
+                                pdf.setFont('helvetica', 'normal'); pdf.setFontSize(12);
+                                var lines = pdf.splitTextToSize(text, uw);
+                                for (var li = 0; li < lines.length; li++) {
+                                    if (y + 16 > ph - mg) { pdf.addPage(); y = mg + 20; }
+                                    pdf.text(lines[li], mg, y); y += 16;
+                                }
+                                first = false;
+                            } else if (inner.tagName === 'image') {
+                                var imgData2 = inner.getAttribute('imageData');
+                                // [M-1] Validate base64 image data
+                                if (!imgData2 || !isValidBase64(imgData2)) {
+                                    console.warn('Skipping invalid embedded image data');
+                                    continue;
+                                }
+                                var iw2 = parseFloat(inner.getAttribute('width') || '400'), ih2 = parseFloat(inner.getAttribute('height') || '500');
+                                if (y + ih2 > ph - mg) { pdf.addPage(); y = mg + 20; }
+                                var dw2 = Math.min(iw2, uw), dh2 = dw2 * (ih2 / iw2);
+                                try { pdf.addImage('data:image/png;base64,' + imgData2, 'PNG', (pw - dw2) / 2, y, dw2, dh2); }
+                                catch (imgErr2) { console.error('Failed to add embedded image:', imgErr2); }
+                                y += dh2 + 10; first = false;
+                            }
+                        }
+                    }
+                }
+            }
+            setProgress('f_u2p', 100, t('completed'));
+            var blob = pdf.output('blob');
+            var name = file.name.replace(/\.udf$/i, '') + '.pdf';
+            showResult(file.name + ' \u2192 ' + name + ' (' + fmtSize(blob.size) + ')', blob, name);
+        } catch (e) {
+            // [M-6] Generic error to user, details in console
+            console.error('UDF->PDF conversion error:', e);
+            toast(t('toastError'));
+        }
+        btn.disabled = false; btn.innerHTML = t('btnConvertToPdf');
+    };
+}
+
+// --- Metin -> UDF ---
+function buildText2Udf(container) {
+    container.innerHTML =
+        '<textarea id="ta_t2u" class="w-full min-h-[240px] p-4 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-xl focus:border-navy-400 focus:ring-0 outline-none font-serif text-base resize-y transition" placeholder="' + escapeHTML(t('text2udfPlaceholder')) + '"></textarea>' +
+        actionBtnHTML('btn_t2u', t('btnCreateUdf'));
+    document.getElementById('ta_t2u').oninput = function() { document.getElementById('btn_t2u').disabled = !document.getElementById('ta_t2u').value.trim(); };
+    document.getElementById('btn_t2u').onclick = async function() {
+        var text = document.getElementById('ta_t2u').value.trim(); if (!text) return;
+        var cp = [], ep = []; var off = 0;
+        var textLines = text.split('\n');
+        for (var i = 0; i < textLines.length; i++) {
+            var line = textLines[i];
+            var l = line || '\u200B';
+            cp.push(l);
+            ep.push('<paragraph Alignment="0" LeftIndent="0.0" RightIndent="0.0"><content startOffset="' + off + '" length="' + l.length + '" /></paragraph>');
+            off += l.length; cp.push('\n'); off += 1;
+        }
+        var xml = buildUdfTemplate(cp.join(''), ep.join('\n'));
+        var blob = await createUdfZip(xml);
+        var udfName = _currentLang === 'en' ? 'document.udf' : 'belge.udf';
+        showResult(t('resultTextToUdf') + ' (' + fmtSize(blob.size) + ')', blob, udfName);
+    };
+}
+
+// --- PDF Birlestir ---
+function buildMergePdf(container) {
+    container.innerHTML = uploadZoneHTML('f_merge', '.pdf', t('labelSelectMultiPdf'), true) + actionBtnHTML('btn_merge', t('btnMerge'));
+    document.getElementById('f_merge').onchange = function() {
+        var files = document.getElementById('f_merge').files;
+        if (!checkFileSizes(files)) { clearInput('f_merge'); return; }
+        showMultiFileInfo('f_merge'); document.getElementById('btn_merge').disabled = files.length < 2;
+    };
+    document.getElementById('btn_merge').onclick = async function() {
+        var files = Array.from(document.getElementById('f_merge').files);
+        var btn = document.getElementById('btn_merge');
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> ' + t('merging');
+        try {
+            var merged = await PDFLib.PDFDocument.create();
+            for (var i = 0; i < files.length; i++) {
+                setProgress('f_merge', Math.round((i / files.length) * 90), (i + 1) + '/' + files.length + ' ' + t('processing'));
+                var buf = await files[i].arrayBuffer();
+                // [M-4] Validate PDF magic bytes
+                if (!validatePdfMagic(buf)) { toast(files[i].name + ' - ' + t('toastInvalidPdf')); continue; }
+                var src = await PDFLib.PDFDocument.load(buf);
+                var pages = await merged.copyPages(src, src.getPageIndices());
+                pages.forEach(function(p) { merged.addPage(p); });
+            }
+            setProgress('f_merge', 100, t('completed'));
+            var bytes = await merged.save();
+            var blob = new Blob([bytes], { type: 'application/pdf' });
+            var mergedName = _currentLang === 'en' ? 'merged.pdf' : 'birlesik.pdf';
+            showResult(files.length + t('resultMerged') + ' (' + fmtSize(blob.size) + ')', blob, mergedName);
+        } catch (e) {
+            console.error('PDF merge error:', e);
+            toast(t('toastError'));
+        }
+        btn.disabled = false; btn.innerHTML = t('btnMerge');
+    };
+}
+
+// --- PDF Bol ---
+function buildSplitPdf(container) {
+    container.innerHTML = uploadZoneHTML('f_split', '.pdf', t('labelSelectPdf')) + actionBtnHTML('btn_split', t('btnSplitPages'));
+    document.getElementById('f_split').onchange = function() {
+        var file = document.getElementById('f_split').files[0];
+        if (!file) return;
+        if (!checkFileSize(file)) { clearInput('f_split'); return; }
+        showFileInfo('f_split'); document.getElementById('btn_split').disabled = false;
+    };
+    document.getElementById('btn_split').onclick = async function() {
+        var file = document.getElementById('f_split').files[0]; if (!file) return;
+        var btn = document.getElementById('btn_split');
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> ' + t('splitting');
+        try {
+            var buf = await file.arrayBuffer();
+            // [M-4] Validate PDF magic bytes
+            if (!validatePdfMagic(buf)) { toast(t('toastInvalidPdf')); btn.disabled = false; btn.innerHTML = t('btnSplitPages'); return; }
+            var src = await PDFLib.PDFDocument.load(buf);
+            var zip = new JSZip();
+            var pagePrefix = _currentLang === 'en' ? 'page_' : 'sayfa_';
+            for (var i = 0; i < src.getPageCount(); i++) {
+                setProgress('f_split', Math.round((i / src.getPageCount()) * 90), t('pageLabel') + (i + 1) + '/' + src.getPageCount());
+                var single = await PDFLib.PDFDocument.create();
+                var copiedPages = await single.copyPages(src, [i]);
+                single.addPage(copiedPages[0]);
+                var bytes = await single.save();
+                zip.file(pagePrefix + (i + 1) + '.pdf', bytes);
+            }
+            setProgress('f_split', 100, t('completed'));
+            var blob = await zip.generateAsync({ type: 'blob' });
+            var pagesZipSuffix = _currentLang === 'en' ? '_pages.zip' : '_sayfalar.zip';
+            showResult(src.getPageCount() + t('resultPagesSplit') + ' (' + fmtSize(blob.size) + ')', blob, file.name.replace(/\.pdf$/i, '') + pagesZipSuffix);
+        } catch (e) {
+            console.error('PDF split error:', e);
+            toast(t('toastError'));
+        }
+        btn.disabled = false; btn.innerHTML = t('btnSplitPages');
+    };
+}
+
+// --- PDF Sikistir ---
+function buildCompressPdf(container) {
+    container.innerHTML = uploadZoneHTML('f_comp', '.pdf', t('labelSelectPdf')) +
+        '<div class="mt-4"><label class="text-sm font-medium text-gray-700 dark:text-gray-300">' + t('labelQuality') + '</label><input type="range" id="compQ" min="0.3" max="0.9" step="0.1" value="0.6" class="w-full mt-1"><div class="flex justify-between text-xs text-gray-500 dark:text-gray-400"><span>' + t('labelSmallSize') + '</span><span>' + t('labelHighQuality') + '</span></div></div>' +
+        actionBtnHTML('btn_comp', t('btnCompress'));
+    document.getElementById('f_comp').onchange = function() {
+        var file = document.getElementById('f_comp').files[0];
+        if (!file) return;
+        if (!checkFileSize(file)) { clearInput('f_comp'); return; }
+        showFileInfo('f_comp'); document.getElementById('btn_comp').disabled = false;
+    };
+    document.getElementById('btn_comp').onclick = async function() {
+        var file = document.getElementById('f_comp').files[0]; if (!file) return;
+        var btn = document.getElementById('btn_comp');
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> ' + t('compressing');
+        try {
+            var q = parseFloat(document.getElementById('compQ').value);
+            setProgress('f_comp', 20, t('readingPdf'));
+            var buf = await file.arrayBuffer();
+            // [M-4] Validate PDF magic bytes
+            if (!validatePdfMagic(buf)) { toast(t('toastInvalidPdf')); btn.disabled = false; btn.innerHTML = t('btnCompress'); return; }
+            var pdf = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
+            var jsPDFLib = window.jspdf;
+            var out = new jsPDFLib.jsPDF({ unit: 'pt', format: 'a4' });
+            for (var i = 1; i <= pdf.numPages; i++) {
+                if (i > 1) out.addPage();
+                setProgress('f_comp', 20 + Math.round((i / pdf.numPages) * 70), t('pageLabel') + i + '/' + pdf.numPages);
+                var page = await pdf.getPage(i);
+                var vp = page.getViewport({ scale: 1.5 });
+                var c = document.createElement('canvas');
+                c.width = vp.width; c.height = vp.height;
+                await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+                var imgData = c.toDataURL('image/jpeg', q);
+                // [L-4] Clean up canvas memory
+                c.width = 0; c.height = 0;
+                var cpw = out.internal.pageSize.getWidth(), cph = out.internal.pageSize.getHeight();
+                out.addImage(imgData, 'JPEG', 0, 0, cpw, cph);
+            }
+            setProgress('f_comp', 100, t('completed'));
+            var blob = out.output('blob');
+            var ratio = ((1 - blob.size / file.size) * 100).toFixed(0);
+            var compSuffix = _currentLang === 'en' ? '_compressed.pdf' : '_sikistirilmis.pdf';
+            showResult(fmtSize(file.size) + ' \u2192 ' + fmtSize(blob.size) + ' (%' + ratio + t('resultReduced') + ')', blob, file.name.replace(/\.pdf$/i, '') + compSuffix);
+        } catch (e) {
+            console.error('PDF compress error:', e);
+            toast(t('toastError'));
+        }
+        btn.disabled = false; btn.innerHTML = t('btnCompress');
+    };
+}
+
+// --- PDF Dondur ---
+function buildRotatePdf(container) {
+    container.innerHTML = uploadZoneHTML('f_rot', '.pdf', t('labelSelectPdf')) +
+        '<div class="flex gap-3 mt-4">' +
+            '<button id="rot90" class="flex-1 py-2.5 rounded-xl border-2 border-navy-500 bg-navy-50 text-navy-700 font-semibold text-sm">' + t('rot90') + '</button>' +
+            '<button id="rot180" class="flex-1 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-semibold text-sm hover:border-gray-300" onclick="DF.rotDeg=180;this.className=document.getElementById(\'rot90\').className;document.getElementById(\'rot90\').className=\'flex-1 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-semibold text-sm\';document.getElementById(\'rot270\').className=document.getElementById(\'rot90\').className">' + t('rot180') + '</button>' +
+            '<button id="rot270" class="flex-1 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-semibold text-sm hover:border-gray-300" onclick="DF.rotDeg=270;this.className=document.getElementById(\'rot90\').className;document.getElementById(\'rot90\').className=\'flex-1 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-semibold text-sm\';document.getElementById(\'rot180\').className=document.getElementById(\'rot90\').className">' + t('rot270') + '</button>' +
+        '</div>' +
+        actionBtnHTML('btn_rot', t('btnRotate'));
+    DF.rotDeg = 90;
+    document.getElementById('rot90').onclick = function() { DF.rotDeg = 90; this.className = 'flex-1 py-2.5 rounded-xl border-2 border-navy-500 bg-navy-50 text-navy-700 font-semibold text-sm'; document.getElementById('rot180').className = document.getElementById('rot270').className = 'flex-1 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-semibold text-sm'; };
+    document.getElementById('f_rot').onchange = function() {
+        var file = document.getElementById('f_rot').files[0];
+        if (!file) return;
+        if (!checkFileSize(file)) { clearInput('f_rot'); return; }
+        showFileInfo('f_rot'); document.getElementById('btn_rot').disabled = false;
+    };
+    document.getElementById('btn_rot').onclick = async function() {
+        var file = document.getElementById('f_rot').files[0]; if (!file) return;
+        var btn = document.getElementById('btn_rot');
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> ' + t('rotating');
+        try {
+            var buf = await file.arrayBuffer();
+            // [M-4] Validate PDF magic bytes
+            if (!validatePdfMagic(buf)) { toast(t('toastInvalidPdf')); btn.disabled = false; btn.innerHTML = t('btnRotate'); return; }
+            var doc = await PDFLib.PDFDocument.load(buf);
+            doc.getPages().forEach(function(p) { p.setRotation(PDFLib.degrees(p.getRotation().angle + DF.rotDeg)); });
+            var bytes = await doc.save();
+            var blob = new Blob([bytes], { type: 'application/pdf' });
+            var rotSuffix = _currentLang === 'en' ? '_rotated.pdf' : '_dondurulmus.pdf';
+            showResult(DF.rotDeg + t('resultRotated') + ' (' + fmtSize(blob.size) + ')', blob, file.name.replace(/\.pdf$/i, '') + rotSuffix);
+        } catch (e) {
+            console.error('PDF rotate error:', e);
+            toast(t('toastError'));
+        }
+        btn.disabled = false; btn.innerHTML = t('btnRotate');
+    };
+}
+
+// --- Gorsel -> PDF ---
+function buildImg2Pdf(container) {
+    container.innerHTML = uploadZoneHTML('f_i2p', '.jpg,.jpeg,.png,.webp', t('labelSelectImages'), true) + actionBtnHTML('btn_i2p', t('btnCreatePdf'));
+    document.getElementById('f_i2p').onchange = function() {
+        var files = document.getElementById('f_i2p').files;
+        if (!checkFileSizes(files)) { clearInput('f_i2p'); return; }
+        showMultiFileInfo('f_i2p'); document.getElementById('btn_i2p').disabled = !files.length;
+    };
+    document.getElementById('btn_i2p').onclick = async function() {
+        var files = Array.from(document.getElementById('f_i2p').files);
+        var btn = document.getElementById('btn_i2p');
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> ' + t('creatingFile');
+        try {
+            var doc = await PDFLib.PDFDocument.create();
+            for (var i = 0; i < files.length; i++) {
+                setProgress('f_i2p', Math.round((i / files.length) * 90), (i + 1) + '/' + files.length);
+                var buf = await files[i].arrayBuffer();
+                var img;
+                if (files[i].type === 'image/png') img = await doc.embedPng(buf);
+                else img = await doc.embedJpg(buf);
+                var dims = img.scale(1);
+                var page = doc.addPage([dims.width, dims.height]);
+                page.drawImage(img, { x: 0, y: 0, width: dims.width, height: dims.height });
+            }
+            setProgress('f_i2p', 100, t('completed'));
+            var bytes = await doc.save();
+            var blob = new Blob([bytes], { type: 'application/pdf' });
+            var imgPdfName = _currentLang === 'en' ? 'images.pdf' : 'gorseller.pdf';
+            showResult(files.length + t('resultImages') + ' (' + fmtSize(blob.size) + ')', blob, imgPdfName);
+        } catch (e) {
+            console.error('Image to PDF error:', e);
+            toast(t('toastError'));
+        }
+        btn.disabled = false; btn.innerHTML = t('btnCreatePdf');
+    };
+}
+
+// --- PDF -> Gorsel ---
+function buildPdf2Img(container) {
+    container.innerHTML = uploadZoneHTML('f_p2i', '.pdf', t('labelSelectPdf')) + actionBtnHTML('btn_p2i', t('btnConvertToImages'));
+    document.getElementById('f_p2i').onchange = function() {
+        var file = document.getElementById('f_p2i').files[0];
+        if (!file) return;
+        if (!checkFileSize(file)) { clearInput('f_p2i'); return; }
+        showFileInfo('f_p2i'); document.getElementById('btn_p2i').disabled = false;
+    };
+    document.getElementById('btn_p2i').onclick = async function() {
+        var file = document.getElementById('f_p2i').files[0]; if (!file) return;
+        var btn = document.getElementById('btn_p2i');
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> ' + t('converting');
+        try {
+            var buf = await file.arrayBuffer();
+            // [M-4] Validate PDF magic bytes
+            if (!validatePdfMagic(buf)) { toast(t('toastInvalidPdf')); btn.disabled = false; btn.innerHTML = t('btnConvertToImages'); return; }
+            var pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+            var zip = new JSZip();
+            var pgPrefix = _currentLang === 'en' ? 'page_' : 'sayfa_';
+            for (var i = 1; i <= pdf.numPages; i++) {
+                setProgress('f_p2i', Math.round((i / pdf.numPages) * 90), t('pageLabel') + i + '/' + pdf.numPages);
+                var page = await pdf.getPage(i);
+                var vp = page.getViewport({ scale: 2.0 });
+                var c = document.createElement('canvas');
+                c.width = vp.width; c.height = vp.height;
+                await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+                var blob = await new Promise(function(r) { c.toBlob(r, 'image/png'); });
+                // [L-4] Clean up canvas memory
+                c.width = 0; c.height = 0;
+                zip.file(pgPrefix + i + '.png', blob);
+            }
+            setProgress('f_p2i', 100, t('completed'));
+            var zipBlob = await zip.generateAsync({ type: 'blob' });
+            var imgZipSuffix = _currentLang === 'en' ? '_images.zip' : '_gorseller.zip';
+            showResult(pdf.numPages + t('resultPagesImg') + ' (' + fmtSize(zipBlob.size) + ')', zipBlob, file.name.replace(/\.pdf$/i, '') + imgZipSuffix);
+        } catch (e) {
+            console.error('PDF to image error:', e);
+            toast(t('toastError'));
+        }
+        btn.disabled = false; btn.innerHTML = t('btnConvertToImages');
+    };
+}
+
+// --- Filigran ---
+function buildWatermark(container) {
+    var wmDefault = _currentLang === 'en' ? 'DRAFT' : 'TASLAK';
+    container.innerHTML = uploadZoneHTML('f_wm', '.pdf', t('labelSelectPdf')) +
+        '<div class="mt-4 space-y-3">' +
+            '<div><label class="text-sm font-medium text-gray-700 dark:text-gray-300">' + t('labelWatermarkText') + '</label><input type="text" id="wmText" value="' + wmDefault + '" class="mt-1 w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-xl focus:border-navy-400 outline-none text-sm"></div>' +
+            '<div class="flex gap-3">' +
+                '<div class="flex-1"><label class="text-sm font-medium text-gray-700 dark:text-gray-300">' + t('labelSize') + '</label><input type="number" id="wmSize" value="60" class="mt-1 w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-navy-400 outline-none text-sm"></div>' +
+                '<div class="flex-1"><label class="text-sm font-medium text-gray-700 dark:text-gray-300">' + t('labelOpacity') + '</label><input type="range" id="wmOpacity" min="0.05" max="0.5" step="0.05" value="0.15" class="mt-3 w-full"></div>' +
+            '</div>' +
+        '</div>' +
+        actionBtnHTML('btn_wm', t('btnAddWatermark'));
+    document.getElementById('f_wm').onchange = function() {
+        var file = document.getElementById('f_wm').files[0];
+        if (!file) return;
+        if (!checkFileSize(file)) { clearInput('f_wm'); return; }
+        showFileInfo('f_wm'); document.getElementById('btn_wm').disabled = false;
+    };
+    document.getElementById('btn_wm').onclick = async function() {
+        var file = document.getElementById('f_wm').files[0]; if (!file) return;
+        var btn = document.getElementById('btn_wm');
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> ' + t('adding');
+        try {
+            var buf = await file.arrayBuffer();
+            // [M-4] Validate PDF magic bytes
+            if (!validatePdfMagic(buf)) { toast(t('toastInvalidPdf')); btn.disabled = false; btn.innerHTML = t('btnAddWatermark'); return; }
+            var doc = await PDFLib.PDFDocument.load(buf);
+            var wmDefaultVal = _currentLang === 'en' ? 'DRAFT' : 'TASLAK';
+            var text = document.getElementById('wmText').value || wmDefaultVal;
+            var size = parseInt(document.getElementById('wmSize').value) || 60;
+            var opacity = parseFloat(document.getElementById('wmOpacity').value) || 0.15;
+            var font = await embedTurkishFont(doc);
+            var pages = doc.getPages();
+            for (var pi = 0; pi < pages.length; pi++) {
+                var page = pages[pi];
+                var pageSize = page.getSize();
+                page.drawText(text, {
+                    x: pageSize.width / 2 - (font.widthOfTextAtSize(text, size) / 2),
+                    y: pageSize.height / 2,
+                    size: size, font: font, opacity: opacity,
+                    color: PDFLib.rgb(0.5, 0.5, 0.5),
+                    rotate: PDFLib.degrees(-45),
+                });
+            }
+            var bytes = await doc.save();
+            var blob = new Blob([bytes], { type: 'application/pdf' });
+            var wmSuffix = _currentLang === 'en' ? '_watermarked.pdf' : '_filigranli.pdf';
+            showResult(t('resultWatermarkAdded') + ' (' + fmtSize(blob.size) + ')', blob, file.name.replace(/\.pdf$/i, '') + wmSuffix);
+        } catch (e) {
+            console.error('Watermark error:', e);
+            toast(t('toastError'));
+        }
+        btn.disabled = false; btn.innerHTML = t('btnAddWatermark');
+    };
+}
+
+// --- Sayfa Numarasi ---
+function buildPageNums(container) {
+    container.innerHTML = uploadZoneHTML('f_pn', '.pdf', t('labelSelectPdf')) +
+        '<div class="flex gap-3 mt-4">' +
+            '<button id="pnLeft" class="flex-1 py-2 rounded-xl border-2 border-gray-200 text-gray-600 text-sm font-medium hover:border-gray-300" onclick="DF.pnPos=\'left\';this.className=\'flex-1 py-2 rounded-xl border-2 border-navy-500 bg-navy-50 text-navy-700 text-sm font-medium\';document.getElementById(\'pnCenter\').className=document.getElementById(\'pnRight\').className=\'flex-1 py-2 rounded-xl border-2 border-gray-200 text-gray-600 text-sm font-medium\'">' + t('posLeft') + '</button>' +
+            '<button id="pnCenter" class="flex-1 py-2 rounded-xl border-2 border-navy-500 bg-navy-50 text-navy-700 text-sm font-medium">' + t('posCenter') + '</button>' +
+            '<button id="pnRight" class="flex-1 py-2 rounded-xl border-2 border-gray-200 text-gray-600 text-sm font-medium hover:border-gray-300" onclick="DF.pnPos=\'right\';this.className=\'flex-1 py-2 rounded-xl border-2 border-navy-500 bg-navy-50 text-navy-700 text-sm font-medium\';document.getElementById(\'pnCenter\').className=document.getElementById(\'pnLeft\').className=\'flex-1 py-2 rounded-xl border-2 border-gray-200 text-gray-600 text-sm font-medium\'">' + t('posRight') + '</button>' +
+        '</div>' +
+        actionBtnHTML('btn_pn', t('btnAddNumbers'));
+    DF.pnPos = 'center';
+    document.getElementById('pnCenter').onclick = function() { DF.pnPos = 'center'; this.className = 'flex-1 py-2 rounded-xl border-2 border-navy-500 bg-navy-50 text-navy-700 text-sm font-medium'; document.getElementById('pnLeft').className = document.getElementById('pnRight').className = 'flex-1 py-2 rounded-xl border-2 border-gray-200 text-gray-600 text-sm font-medium'; };
+    document.getElementById('f_pn').onchange = function() {
+        var file = document.getElementById('f_pn').files[0];
+        if (!file) return;
+        if (!checkFileSize(file)) { clearInput('f_pn'); return; }
+        showFileInfo('f_pn'); document.getElementById('btn_pn').disabled = false;
+    };
+    document.getElementById('btn_pn').onclick = async function() {
+        var file = document.getElementById('f_pn').files[0]; if (!file) return;
+        var btn = document.getElementById('btn_pn');
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> ' + t('adding');
+        try {
+            var buf = await file.arrayBuffer();
+            // [M-4] Validate PDF magic bytes
+            if (!validatePdfMagic(buf)) { toast(t('toastInvalidPdf')); btn.disabled = false; btn.innerHTML = t('btnAddNumbers'); return; }
+            var doc = await PDFLib.PDFDocument.load(buf);
+            var font = await embedTurkishFont(doc);
+            var pages = doc.getPages();
+            pages.forEach(function(page, i) {
+                var pageWidth = page.getSize().width;
+                var text = String(i + 1);
+                var tw = font.widthOfTextAtSize(text, 10);
+                var x = pageWidth / 2 - tw / 2;
+                if (DF.pnPos === 'left') x = 56;
+                if (DF.pnPos === 'right') x = pageWidth - 56 - tw;
+                page.drawText(text, { x: x, y: 30, size: 10, font: font, color: PDFLib.rgb(0.3, 0.3, 0.3) });
+            });
+            var bytes = await doc.save();
+            var blob = new Blob([bytes], { type: 'application/pdf' });
+            var pnSuffix = _currentLang === 'en' ? '_numbered.pdf' : '_numarali.pdf';
+            showResult(pages.length + t('resultPageNumbers'), blob, file.name.replace(/\.pdf$/i, '') + pnSuffix);
+        } catch (e) {
+            console.error('Page numbers error:', e);
+            toast(t('toastError'));
+        }
+        btn.disabled = false; btn.innerHTML = t('btnAddNumbers');
+    };
+}
+
+// =============================================
+// PDF EDITOR
+// =============================================
+function buildEditPdf(container) {
+    container.innerHTML =
+        '<div id="editorUpload">' +
+            uploadZoneHTML('f_edit', '.pdf', t('labelSelectEditPdf')) +
+        '</div>' +
+        '<div id="editorUI" class="hidden fade-in">' +
+            '<div class="editor-toolbar mb-4" id="edToolbar">' +
+                '<button id="etEdittext" class="active" onclick="edSetTool(\'edittext\')">' +
+                    '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>' +
+                    ' ' + t('edEdit') +
+                '</button>' +
+                '<button id="etSelect" onclick="edSetTool(\'select\')">' +
+                    '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zM12 2.25V4.5m5.834.166l-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243l-1.59-1.59"/></svg>' +
+                    ' ' + t('edSelect') +
+                '</button>' +
+                '<button id="etText" onclick="edSetTool(\'text\')">' +
+                    '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>' +
+                    ' ' + t('edText') +
+                '</button>' +
+                '<button id="etDraw" onclick="edSetTool(\'draw\')">' +
+                    '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42"/></svg>' +
+                    ' ' + t('edDraw') +
+                '</button>' +
+                '<button id="etHighlight" onclick="edSetTool(\'highlight\')">' +
+                    '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636"/></svg>' +
+                    ' ' + t('edHighlight') +
+                '</button>' +
+                '<button id="etRect" onclick="edSetTool(\'rect\')">' +
+                    '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/></svg>' +
+                    ' ' + t('edBox') +
+                '</button>' +
+                '<div class="sep"></div>' +
+                '<label class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 cursor-pointer">' +
+                    '' + t('edColor') + ' <input type="color" id="edColor" value="#1e1b4b" class="w-6 h-6 border-0 p-0 cursor-pointer rounded">' +
+                '</label>' +
+                '<label class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">' +
+                    '' + t('edThickness') + ' <input type="range" id="edSize" min="1" max="20" value="3" class="w-16">' +
+                '</label>' +
+                '<label class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">' +
+                    '' + t('edFontSize') + ' <input type="number" id="edFontSize" min="8" max="72" value="16" class="w-14 border border-gray-300 rounded px-1 py-0.5 text-xs">' +
+                '</label>' +
+                '<div class="sep"></div>' +
+                '<button onclick="edUndo()">' +
+                    '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"/></svg>' +
+                    ' ' + t('edUndo') +
+                '</button>' +
+                '<button onclick="edClearPage()" class="text-red-500 hover:!text-red-700 hover:!bg-red-50">' +
+                    '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>' +
+                    ' ' + t('edClear') +
+                '</button>' +
+            '</div>' +
+            '<div class="overflow-auto bg-gray-100 rounded-xl p-4 flex justify-center" style="max-height:75vh" id="edCanvasContainer">' +
+                '<div class="pdf-editor-canvas-wrap" id="edWrap">' +
+                    '<canvas id="edPdfCanvas"></canvas>' +
+                    '<div id="edTextLayer" class="ed-text-layer"></div>' +
+                    '<canvas id="edDrawCanvas" style="position:absolute;top:0;left:0;"></canvas>' +
+                '</div>' +
+            '</div>' +
+            '<div class="editor-page-nav" id="edPageNav">' +
+                '<button onclick="edPrevPage()">' + t('edPrev') + '</button>' +
+                '<span id="edPageInfo" class="text-sm font-medium text-gray-600 dark:text-gray-300"></span>' +
+                '<button onclick="edNextPage()">' + t('edNext') + '</button>' +
+            '</div>' +
+            '<button id="edSaveBtn" class="w-full mt-4 py-3.5 rounded-xl font-semibold text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 transition shadow-sm flex items-center justify-center gap-2" onclick="edSave()">' +
+                '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12M12 16.5V3"/></svg>' +
+                ' ' + t('btnDownloadEditedPdf') +
+            '</button>' +
+        '</div>';
+
+    document.getElementById('f_edit').onchange = async function() {
+        var file = document.getElementById('f_edit').files[0];
+        if (!file) return;
+        // [H-3] File size check
+        if (!checkFileSize(file)) { clearInput('f_edit'); return; }
+        try {
+            var buf = await file.arrayBuffer();
+            // [M-4] Validate PDF magic bytes
+            if (!validatePdfMagic(buf)) { toast(t('toastInvalidPdf')); return; }
+            DF.edPdfBuf = buf;
+            DF.edPdfName = file.name;
+            DF.edPdf = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
+            DF.edPageNum = 1;
+            DF.edTool = 'edittext';
+            DF.edAnnotations = {};
+            DF.edTextEdits = {};
+            DF.edOrigTexts = {};
+            DF.edCurrentPath = null;
+            DF.edIsDrawing = false;
+
+            document.getElementById('editorUpload').classList.add('hidden');
+            document.getElementById('editorUI').classList.remove('hidden');
+            await edRenderPage(1);
+            edSetupCanvas();
+            edSetTool('edittext');
+        } catch (e) {
+            console.error('PDF editor load error:', e);
+            toast(t('toastPdfLoadFail'));
+        }
+    };
+}
+
+// Editor state
+function edGetAnnotations(page) {
+    if (!DF.edAnnotations[page]) DF.edAnnotations[page] = [];
+    return DF.edAnnotations[page];
+}
+
+function edSetTool(tool) {
+    DF.edTool = tool;
+    var toolMap = { edittext:'etEdittext', select:'etSelect', text:'etText', draw:'etDraw', highlight:'etHighlight', rect:'etRect' };
+    Object.values(toolMap).forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('active'); });
+    var activeId = toolMap[tool];
+    if (activeId) { var el = document.getElementById(activeId); if (el) el.classList.add('active'); }
+
+    var dc = document.getElementById('edDrawCanvas');
+    var tl = document.getElementById('edTextLayer');
+
+    if (tool === 'edittext') {
+        // Show text layer on top, hide draw canvas interaction
+        dc.style.pointerEvents = 'none';
+        dc.style.cursor = 'default';
+        tl.style.zIndex = '15';
+    } else {
+        dc.style.pointerEvents = 'auto';
+        tl.style.zIndex = '5';
+        dc.style.cursor = tool === 'select' ? 'default' : tool === 'text' ? 'text' : 'crosshair';
+    }
+    // Remove any active text input
+    document.querySelectorAll('.text-input-overlay').forEach(function(el) { edFinalizeText(el); });
+}
+
+async function edRenderPage(num) {
+    var page = await DF.edPdf.getPage(num);
+    var scale = Math.min(800 / page.getViewport({ scale: 1 }).width, 2.0);
+    var vp = page.getViewport({ scale: scale });
+    var pc = document.getElementById('edPdfCanvas');
+    var dc = document.getElementById('edDrawCanvas');
+    pc.width = dc.width = vp.width;
+    pc.height = dc.height = vp.height;
+    await page.render({ canvasContext: pc.getContext('2d'), viewport: vp }).promise;
+    DF.edScale = scale;
+    DF.edPageNum = num;
+    document.getElementById('edPageInfo').textContent = t('edPage') + ' ' + num + ' / ' + DF.edPdf.numPages;
+    edRedrawAnnotations();
+
+    // Extract text items and create editable overlay elements
+    await edBuildTextLayer(page, vp, num);
+}
+
+async function edBuildTextLayer(page, viewport, pageNum) {
+    var tl = document.getElementById('edTextLayer');
+    tl.innerHTML = '';
+    tl.style.width = viewport.width + 'px';
+    tl.style.height = viewport.height + 'px';
+
+    var textContent = await page.getTextContent();
+    if (!DF.edTextEdits) DF.edTextEdits = {};
+    if (!DF.edOrigTexts) DF.edOrigTexts = {};
+
+    var items = textContent.items.filter(function(item) { return item.str && item.str.trim(); });
+    DF.edOrigTexts[pageNum] = items.map(function(item, idx) {
+        return {
+            idx: idx,
+            str: item.str,
+            transform: item.transform.slice(),
+            width: item.width,
+            height: item.height,
+            fontName: item.fontName,
+        };
+    });
+
+    // Group nearby items on the same line into text blocks for easier editing
+    var blocks = [];
+    var currentBlock = null;
+
+    items.forEach(function(item, idx) {
+        var tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
+        var fontSize = Math.sqrt(tx[0] * tx[0] + tx[1] * tx[1]);
+        var angle = Math.atan2(tx[1], tx[0]);
+        var left = tx[4];
+        var top = tx[5] - fontSize;
+        var w = item.width * viewport.scale;
+
+        // Check if this item belongs to the current block (same line, close proximity)
+        if (currentBlock && Math.abs(top - currentBlock.top) < fontSize * 0.5
+            && left - (currentBlock.left + currentBlock.width) < fontSize * 2
+            && Math.abs(fontSize - currentBlock.fontSize) < 2) {
+            // Extend current block
+            currentBlock.items.push({ idx: idx, str: item.str, left: left, w: w });
+            currentBlock.width = (left + w) - currentBlock.left;
+            currentBlock.fullStr += item.str;
+        } else {
+            // Start new block
+            currentBlock = {
+                items: [{ idx: idx, str: item.str, left: left, w: w }],
+                left: left, top: top, width: w,
+                height: fontSize * 1.3,
+                fontSize: fontSize, angle: angle,
+                fullStr: item.str,
+                startIdx: idx,
+            };
+            blocks.push(currentBlock);
+        }
+    });
+
+    blocks.forEach(function(block, bIdx) {
+        var div = document.createElement('div');
+        div.className = 'ed-text-item';
+        div.contentEditable = true;
+        div.spellcheck = false;
+
+        // [H-2] Sanitize paste events - strip HTML, allow only plain text
+        div.addEventListener('paste', function(e) {
+            e.preventDefault();
+            var plainText = (e.clipboardData || window.clipboardData).getData('text/plain');
+            document.execCommand('insertText', false, plainText);
+        });
+
+        // Check if any item in this block was edited
+        var key = pageNum + '_b' + bIdx;
+        var savedText = DF.edTextEdits[key];
+        div.textContent = savedText !== undefined ? savedText : block.fullStr;
+
+        div.style.left = block.left + 'px';
+        div.style.top = block.top + 'px';
+        div.style.fontSize = block.fontSize + 'px';
+        div.style.minWidth = Math.max(block.width, 30) + 'px';
+        div.style.height = block.height + 'px';
+        div.style.fontFamily = 'Helvetica, Arial, sans-serif';
+
+        if (Math.abs(block.angle) > 0.01) {
+            div.style.transform = 'rotate(' + block.angle + 'rad)';
+            div.style.transformOrigin = '0 100%';
+        }
+
+        div.dataset.pageNum = pageNum;
+        div.dataset.blockIdx = bIdx;
+        div.dataset.orig = block.fullStr;
+        // Store item indices for save mapping
+        div.dataset.itemIndices = block.items.map(function(it) { return it.idx; }).join(',');
+
+        if (savedText !== undefined && savedText !== block.fullStr) {
+            div.classList.add('modified');
+        }
+
+        div.addEventListener('input', function() {
+            var newText = this.textContent;
+            var orig = this.dataset.orig;
+            var k = this.dataset.pageNum + '_b' + this.dataset.blockIdx;
+            if (newText !== orig) {
+                this.classList.add('modified');
+                DF.edTextEdits[k] = newText;
+            } else {
+                this.classList.remove('modified');
+                delete DF.edTextEdits[k];
+            }
+        });
+
+        tl.appendChild(div);
+    });
+
+    // Store blocks for save
+    DF.edBlocks = DF.edBlocks || {};
+    DF.edBlocks[pageNum] = blocks;
+}
+
+function edRedrawAnnotations() {
+    var dc = document.getElementById('edDrawCanvas');
+    var ctx = dc.getContext('2d');
+    ctx.clearRect(0, 0, dc.width, dc.height);
+    var anns = edGetAnnotations(DF.edPageNum);
+    for (var ai = 0; ai < anns.length; ai++) {
+        var a = anns[ai];
+        ctx.save();
+        if (a.type === 'draw') {
+            ctx.strokeStyle = a.color;
+            ctx.lineWidth = a.lineWidth;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            for (var i = 0; i < a.points.length; i++) {
+                if (i === 0) ctx.moveTo(a.points[i][0], a.points[i][1]);
+                else ctx.lineTo(a.points[i][0], a.points[i][1]);
+            }
+            ctx.stroke();
+        } else if (a.type === 'highlight') {
+            ctx.fillStyle = a.color;
+            ctx.globalAlpha = 0.3;
+            ctx.fillRect(a.x, a.y, a.w, a.h);
+        } else if (a.type === 'rect') {
+            ctx.strokeStyle = a.color;
+            ctx.lineWidth = a.lineWidth;
+            ctx.strokeRect(a.x, a.y, a.w, a.h);
+        } else if (a.type === 'text') {
+            ctx.fillStyle = a.color;
+            ctx.font = a.fontSize + 'px sans-serif';
+            var lines = a.text.split('\n');
+            for (var li = 0; li < lines.length; li++) {
+                ctx.fillText(lines[li], a.x, a.y + a.fontSize * (li + 1));
+            }
+        }
+        ctx.restore();
+    }
+}
+
+function edSetupCanvas() {
+    var dc = document.getElementById('edDrawCanvas');
+    var startX, startY;
+
+    dc.onmousedown = dc.ontouchstart = function(e) {
+        e.preventDefault();
+        var rect = dc.getBoundingClientRect();
+        var touch = e.touches ? e.touches[0] : e;
+        var x = (touch.clientX - rect.left) * (dc.width / rect.width);
+        var y = (touch.clientY - rect.top) * (dc.height / rect.height);
+        startX = x; startY = y;
+
+        if (DF.edTool === 'text') {
+            // Create inline text input
+            var wrap = document.getElementById('edWrap');
+            var ta = document.createElement('textarea');
+            ta.className = 'text-input-overlay';
+            ta.style.left = (x / dc.width * 100) + '%';
+            ta.style.top = (y / dc.height * 100) + '%';
+            ta.style.fontSize = document.getElementById('edFontSize').value + 'px';
+            ta.style.color = document.getElementById('edColor').value;
+            wrap.appendChild(ta);
+            ta.focus();
+            ta.onblur = function() { setTimeout(function() { edFinalizeText(ta); }, 100); };
+            return;
+        }
+
+        if (DF.edTool === 'draw') {
+            DF.edIsDrawing = true;
+            DF.edCurrentPath = {
+                type: 'draw',
+                color: document.getElementById('edColor').value,
+                lineWidth: parseInt(document.getElementById('edSize').value),
+                points: [[x, y]]
+            };
+        } else if (DF.edTool === 'highlight' || DF.edTool === 'rect') {
+            DF.edIsDrawing = true;
+            DF.edCurrentShape = { type: DF.edTool, x: x, y: y, w: 0, h: 0,
+                color: DF.edTool === 'highlight' ? '#facc15' : document.getElementById('edColor').value,
+                lineWidth: parseInt(document.getElementById('edSize').value) };
+        }
+    };
+
+    dc.onmousemove = dc.ontouchmove = function(e) {
+        if (!DF.edIsDrawing) return;
+        e.preventDefault();
+        var rect = dc.getBoundingClientRect();
+        var touch = e.touches ? e.touches[0] : e;
+        var x = (touch.clientX - rect.left) * (dc.width / rect.width);
+        var y = (touch.clientY - rect.top) * (dc.height / rect.height);
+
+        if (DF.edTool === 'draw' && DF.edCurrentPath) {
+            DF.edCurrentPath.points.push([x, y]);
+            edRedrawAnnotations();
+            // Draw current path preview
+            var ctx = dc.getContext('2d');
+            ctx.strokeStyle = DF.edCurrentPath.color;
+            ctx.lineWidth = DF.edCurrentPath.lineWidth;
+            ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+            ctx.beginPath();
+            var pts = DF.edCurrentPath.points;
+            for (var i = 0; i < pts.length; i++) {
+                if (i === 0) ctx.moveTo(pts[i][0], pts[i][1]);
+                else ctx.lineTo(pts[i][0], pts[i][1]);
+            }
+            ctx.stroke();
+        } else if (DF.edCurrentShape) {
+            DF.edCurrentShape.w = x - startX;
+            DF.edCurrentShape.h = y - startY;
+            edRedrawAnnotations();
+            var ctx2 = dc.getContext('2d');
+            ctx2.save();
+            if (DF.edCurrentShape.type === 'highlight') {
+                ctx2.fillStyle = DF.edCurrentShape.color;
+                ctx2.globalAlpha = 0.3;
+                ctx2.fillRect(startX, startY, x - startX, y - startY);
+            } else {
+                ctx2.strokeStyle = DF.edCurrentShape.color;
+                ctx2.lineWidth = DF.edCurrentShape.lineWidth;
+                ctx2.strokeRect(startX, startY, x - startX, y - startY);
+            }
+            ctx2.restore();
+        }
+    };
+
+    dc.onmouseup = dc.ontouchend = function(e) {
+        if (!DF.edIsDrawing) return;
+        DF.edIsDrawing = false;
+        if (DF.edTool === 'draw' && DF.edCurrentPath && DF.edCurrentPath.points.length > 1) {
+            edGetAnnotations(DF.edPageNum).push(DF.edCurrentPath);
+        } else if (DF.edCurrentShape && (Math.abs(DF.edCurrentShape.w) > 3 || Math.abs(DF.edCurrentShape.h) > 3)) {
+            // Normalize negative w/h
+            if (DF.edCurrentShape.w < 0) { DF.edCurrentShape.x += DF.edCurrentShape.w; DF.edCurrentShape.w *= -1; }
+            if (DF.edCurrentShape.h < 0) { DF.edCurrentShape.y += DF.edCurrentShape.h; DF.edCurrentShape.h *= -1; }
+            edGetAnnotations(DF.edPageNum).push(DF.edCurrentShape);
+        }
+        DF.edCurrentPath = null;
+        DF.edCurrentShape = null;
+        edRedrawAnnotations();
+    };
+}
+
+function edFinalizeText(ta) {
+    if (!ta || !ta.parentNode) return;
+    var text = ta.value.trim();
+    if (text) {
+        var dc = document.getElementById('edDrawCanvas');
+        var wrapRect = document.getElementById('edWrap').getBoundingClientRect();
+        var x = (ta.offsetLeft / wrapRect.width) * dc.width;
+        var y = (ta.offsetTop / wrapRect.height) * dc.height;
+        edGetAnnotations(DF.edPageNum).push({
+            type: 'text', text: text, x: x, y: y,
+            color: ta.style.color || '#1e1b4b',
+            fontSize: parseInt(ta.style.fontSize) || 16
+        });
+        edRedrawAnnotations();
+    }
+    ta.remove();
+}
+
+function edUndo() {
+    var anns = edGetAnnotations(DF.edPageNum);
+    if (anns.length > 0) { anns.pop(); edRedrawAnnotations(); }
+}
+
+function edClearPage() {
+    DF.edAnnotations[DF.edPageNum] = [];
+    edRedrawAnnotations();
+}
+
+async function edPrevPage() {
+    if (DF.edPageNum > 1) {
+        document.querySelectorAll('.text-input-overlay').forEach(function(el) { edFinalizeText(el); });
+        await edRenderPage(DF.edPageNum - 1);
+    }
+}
+
+async function edNextPage() {
+    if (DF.edPageNum < DF.edPdf.numPages) {
+        document.querySelectorAll('.text-input-overlay').forEach(function(el) { edFinalizeText(el); });
+        await edRenderPage(DF.edPageNum + 1);
+    }
+}
+
+async function edSave() {
+    var btn = document.getElementById('edSaveBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> ' + t('savingPdf');
+    document.querySelectorAll('.text-input-overlay').forEach(function(el) { edFinalizeText(el); });
+    // Finalize any focused text edits
+    document.querySelectorAll('.ed-text-item:focus').forEach(function(el) { el.blur(); });
+
+    try {
+        var doc = await PDFLib.PDFDocument.load(DF.edPdfBuf.slice(0));
+        var pages = doc.getPages();
+        var font = await embedTurkishFont(doc);
+
+        for (var pNum = 1; pNum <= pages.length; pNum++) {
+            var page = pages[pNum - 1];
+            var pageDims = page.getSize();
+            var pw = pageDims.width, ph = pageDims.height;
+
+            var pdfPage = await DF.edPdf.getPage(pNum);
+            var origVp = pdfPage.getViewport({ scale: 1 });
+            var renderScale = DF.edScale;
+            var sx = pw / (origVp.width * renderScale);
+            var sy = ph / (origVp.height * renderScale);
+
+            // --- Apply text block edits (cover original + draw new) ---
+            var blocks = (DF.edBlocks && DF.edBlocks[pNum]) || [];
+            var origTexts = (DF.edOrigTexts && DF.edOrigTexts[pNum]) || [];
+
+            for (var bIdx = 0; bIdx < blocks.length; bIdx++) {
+                var key = pNum + '_b' + bIdx;
+                var newText = DF.edTextEdits && DF.edTextEdits[key];
+                if (newText === undefined) continue; // not modified
+
+                var block = blocks[bIdx];
+
+                // Cover ALL original items in this block with white
+                for (var bi = 0; bi < block.items.length; bi++) {
+                    var item = block.items[bi];
+                    var origItem = origTexts[item.idx];
+                    if (!origItem) continue;
+                    var t = origItem.transform;
+                    var ox = t[4];
+                    var oy = t[5];
+                    var fs = Math.sqrt(t[0] * t[0] + t[1] * t[1]);
+                    var tw = origItem.width || (origItem.str.length * fs * 0.6);
+                    page.drawRectangle({
+                        x: ox - 1,
+                        y: oy - fs * 0.35,
+                        width: tw + 4,
+                        height: fs * 1.5,
+                        color: PDFLib.rgb(1, 1, 1),
+                        borderWidth: 0,
+                    });
+                }
+
+                // Draw new text at the block's starting position
+                var firstItem = origTexts[block.items[0].idx];
+                if (!firstItem) continue;
+                var ft = firstItem.transform;
+                var fontSize = Math.sqrt(ft[0] * ft[0] + ft[1] * ft[1]);
+                var safeFontSize = Math.max(fontSize * 0.88, 6);
+
+                page.drawText(newText, {
+                    x: ft[4],
+                    y: ft[5],
+                    size: safeFontSize,
+                    font: font,
+                    color: PDFLib.rgb(0, 0, 0),
+                });
+            }
+
+            // --- Apply drawing annotations ---
+            var anns = DF.edAnnotations[pNum];
+            if (anns && anns.length > 0) {
+                for (var ai = 0; ai < anns.length; ai++) {
+                    var a = anns[ai];
+                    if (a.type === 'draw') {
+                        var color = hexToRgb(a.color);
+                        for (var pi = 1; pi < a.points.length; pi++) {
+                            var x1 = a.points[pi-1][0] * sx, y1 = ph - a.points[pi-1][1] * sy;
+                            var x2 = a.points[pi][0] * sx, y2 = ph - a.points[pi][1] * sy;
+                            page.drawLine({ start: {x:x1,y:y1}, end: {x:x2,y:y2},
+                                thickness: a.lineWidth * sx, color: color });
+                        }
+                    } else if (a.type === 'highlight') {
+                        page.drawRectangle({
+                            x: a.x * sx, y: ph - (a.y + a.h) * sy,
+                            width: a.w * sx, height: a.h * sy,
+                            color: PDFLib.rgb(0.98, 0.8, 0.08), opacity: 0.3,
+                        });
+                    } else if (a.type === 'rect') {
+                        var rcolor = hexToRgb(a.color);
+                        page.drawRectangle({
+                            x: a.x * sx, y: ph - (a.y + a.h) * sy,
+                            width: a.w * sx, height: a.h * sy,
+                            borderColor: rcolor, borderWidth: a.lineWidth * sx,
+                            color: PDFLib.rgb(1, 1, 1), opacity: 0,
+                        });
+                    } else if (a.type === 'text') {
+                        var fsPt = a.fontSize * sx;
+                        var tcolor = hexToRgb(a.color);
+                        var tlines = a.text.split('\n');
+                        for (var tli = 0; tli < tlines.length; tli++) {
+                            page.drawText(tlines[tli], {
+                                x: a.x * sx,
+                                y: ph - (a.y + a.fontSize * (tli + 1)) * sy,
+                                size: fsPt, font: font, color: tcolor,
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
+        var bytes = await doc.save();
+        var blob = new Blob([bytes], { type: 'application/pdf' });
+        var edSuffix = _currentLang === 'en' ? '_edited.pdf' : '_duzenlenmis.pdf';
+        var name = DF.edPdfName.replace(/\.pdf$/i, '') + edSuffix;
+        downloadBlob(blob, name);
+        toast(t('toastPdfSaved'));
+    } catch (e) {
+        console.error('PDF editor save error:', e);
+        toast(t('toastError'));
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12M12 16.5V3"/></svg> ' + t('btnDownloadEditedPdf');
+}
+
+// Cache for Turkish-compatible font
+var _cachedFontBytes = null;
+async function embedTurkishFont(doc) {
+    // Register fontkit for custom font embedding
+    doc.registerFontkit(fontkit);
+    if (!_cachedFontBytes) {
+        // [M-7] Font URL pinned to specific commit hash for reproducibility
+        var resp = await fetch('https://cdn.jsdelivr.net/gh/googlefonts/noto-fonts@ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSans/NotoSans-Regular.ttf');
+        if (!resp.ok) throw new Error(t('toastFontFail'));
+        _cachedFontBytes = await resp.arrayBuffer();
+    }
+    return await doc.embedFont(_cachedFontBytes, { subset: true });
+}
+
+function hexToRgb(hex) {
+    hex = hex.replace('#', '');
+    return PDFLib.rgb(
+        parseInt(hex.substring(0, 2), 16) / 255,
+        parseInt(hex.substring(2, 4), 16) / 255,
+        parseInt(hex.substring(4, 6), 16) / 255
+    );
+}
+</script>
+</body>
+</html>
