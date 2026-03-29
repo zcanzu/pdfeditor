@@ -77,6 +77,7 @@
         .ed-text-layer { position:absolute; top:0; left:0; width:100%; height:100%; z-index:5; pointer-events:none; }
         .ed-text-layer .ed-text-item { pointer-events:auto; }
         .ed-text-layer.edit-active .ed-text-item { pointer-events:auto; }
+        [contenteditable=true]:empty:before { content: attr(data-placeholder); color: #9ca3af; pointer-events: none; }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans min-h-screen transition-colors duration-300">
@@ -1294,11 +1295,42 @@ function buildUdf2Pdf(container) {
 // --- Metin -> UDF ---
 function buildText2Udf(container) {
     container.innerHTML =
-        '<textarea id="ta_t2u" class="w-full min-h-[240px] p-4 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-xl focus:border-navy-400 focus:ring-0 outline-none font-serif text-base resize-y transition" placeholder="' + escapeHTML(t('text2udfPlaceholder')) + '"></textarea>' +
+        '<div class="flex items-center gap-3 mb-3 flex-wrap">' +
+            '<select id="ta_font" class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg text-sm" onchange="document.getElementById(\'ta_t2u\').style.fontFamily=this.value">' +
+                '<option value="Times New Roman, serif">Times New Roman</option>' +
+                '<option value="Arial, sans-serif">Arial</option>' +
+                '<option value="Courier New, monospace">Courier New</option>' +
+                '<option value="Georgia, serif">Georgia</option>' +
+                '<option value="Verdana, sans-serif">Verdana</option>' +
+            '</select>' +
+            '<select id="ta_size" class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg text-sm" onchange="document.getElementById(\'ta_t2u\').style.fontSize=this.value">' +
+                '<option value="10pt">10</option>' +
+                '<option value="11pt">11</option>' +
+                '<option value="12pt" selected>12</option>' +
+                '<option value="14pt">14</option>' +
+                '<option value="16pt">16</option>' +
+                '<option value="18pt">18</option>' +
+                '<option value="20pt">20</option>' +
+                '<option value="24pt">24</option>' +
+            '</select>' +
+            '<div class="flex gap-1">' +
+                '<button type="button" onclick="document.execCommand(\'bold\')" class="w-8 h-8 flex items-center justify-center border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-bold hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200">B</button>' +
+                '<button type="button" onclick="document.execCommand(\'italic\')" class="w-8 h-8 flex items-center justify-center border border-gray-300 dark:border-gray-600 rounded-lg text-sm italic hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200">I</button>' +
+                '<button type="button" onclick="document.execCommand(\'underline\')" class="w-8 h-8 flex items-center justify-center border border-gray-300 dark:border-gray-600 rounded-lg text-sm underline hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200">U</button>' +
+            '</div>' +
+            '<div class="flex gap-1">' +
+                '<button type="button" onclick="document.execCommand(\'justifyLeft\')" class="w-8 h-8 flex items-center justify-center border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"><svg class="w-4 h-4 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M3 12h12M3 18h16"/></svg></button>' +
+                '<button type="button" onclick="document.execCommand(\'justifyCenter\')" class="w-8 h-8 flex items-center justify-center border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"><svg class="w-4 h-4 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M6 12h12M5 18h14"/></svg></button>' +
+                '<button type="button" onclick="document.execCommand(\'justifyRight\')" class="w-8 h-8 flex items-center justify-center border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"><svg class="w-4 h-4 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M9 12h12M5 18h16"/></svg></button>' +
+            '</div>' +
+        '</div>' +
+        '<div class="overflow-auto bg-gray-100 dark:bg-gray-950 rounded-xl p-6 flex justify-center" style="max-height:70vh">' +
+            '<div id="ta_t2u" contenteditable="true" class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-lg outline-none" style="width:210mm;min-height:297mm;max-width:100%;padding:2.5cm 2cm;font-family:Times New Roman,serif;font-size:12pt;line-height:1.6;box-sizing:border-box;" data-placeholder="' + escapeHTML(t('text2udfPlaceholder')) + '"></div>' +
+        '</div>' +
         actionBtnHTML('btn_t2u', t('btnCreateUdf'));
-    document.getElementById('ta_t2u').oninput = function() { document.getElementById('btn_t2u').disabled = !document.getElementById('ta_t2u').value.trim(); };
+    document.getElementById('ta_t2u').oninput = function() { document.getElementById('btn_t2u').disabled = !document.getElementById('ta_t2u').innerText.trim(); };
     document.getElementById('btn_t2u').onclick = async function() {
-        var text = document.getElementById('ta_t2u').value.trim(); if (!text) return;
+        var text = document.getElementById('ta_t2u').innerText.trim(); if (!text) return;
         var cp = [], ep = []; var off = 0;
         var textLines = text.split('\n');
         for (var i = 0; i < textLines.length; i++) {
